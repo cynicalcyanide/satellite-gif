@@ -8,26 +8,31 @@ file covers what an agent must know that a human guide glosses over.
 ## What this tool is
 
 `satgif.py` is a single-module tool that renders satellite timelapse GIFs
-and MP4s from Google Earth Engine (GEE). One module, no package install —
-you run it from the repo directory. It has two equivalent interfaces:
+and MP4s from Google Earth Engine (GEE). One module, no package install.
+It has two equivalent interfaces:
 
-- **CLI**: `python satgif.py generate|sensors|doctor [flags]`
+- **CLI**: `./satgif generate|sensors|doctor [flags]` — `satgif` is a
+  POSIX-sh launcher that resolves its own repo directory (through
+  symlinks too) and execs `.venv/bin/python satgif.py`. Prefer it over
+  spelling out interpreter paths; it may also be on the user's PATH as
+  plain `satgif`.
 - **Python**: `from satgif import make_timelapse` — every CLI flag is a
   keyword argument of the same name (dashes → underscores, same defaults).
 
-Repo layout: `satgif.py` (everything), `README.md` (manual),
-`requirements.txt` (`earthengine-api`, `pillow`, `requests`),
+Repo layout: `satgif.py` (everything), `satgif` (launcher), `README.md`
+(manual), `requirements.txt` (`earthengine-api`, `pillow`, `requests`),
 `satgif_cache/` (gitignored frame cache), outputs `*.gif`/`*.mp4`
 (gitignored).
 
 ## Setup, as an agent
 
-1. **Interpreter**: use a venv with the requirements installed. Detect an
-   existing one first (`.venv/bin/python -c "import ee, PIL, requests"`);
-   create one only if missing:
+1. **Interpreter**: the `satgif` launcher expects the repo's own venv at
+   `.venv/`. Detect it first (`.venv/bin/python -c "import ee, PIL,
+   requests"`); create it only if missing:
    `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+   (the launcher prints exactly this fix if the venv is absent).
 2. **Diagnose before running**: always start with
-   `python satgif.py doctor`. It checks, in dependency order: the
+   `./satgif doctor`. It checks, in dependency order: the
    `earthengine-api` import → cached credentials → resolvable project id →
    a live EE round-trip → ffmpeg. Each failing line prints its fix.
 3. **The step you cannot do yourself**: `ee.Authenticate()` opens a browser
@@ -50,7 +55,7 @@ Repo layout: `satgif.py` (everything), `README.md` (manual),
 Canonical invocation (the repo's worked example):
 
 ```bash
-.venv/bin/python satgif.py generate \
+./satgif generate \
     --lat 23.4945 --lon 72.0072 --radius-km 3x1.2 \
     --start 2016 --end 2023 --season 01-04 \
     --title "HANSALPUR, GUJARAT" --out hansalpur.gif

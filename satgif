@@ -1,0 +1,20 @@
+#!/bin/sh
+# Launcher: runs satgif.py with the repo's own venv, from anywhere.
+# Works via symlink too (e.g. ln -s .../satgif ~/.local/bin/satgif).
+SELF=$0
+while [ -L "$SELF" ]; do
+    LINK=$(readlink "$SELF")
+    case $LINK in
+        /*) SELF=$LINK ;;
+        *)  SELF=$(dirname "$SELF")/$LINK ;;
+    esac
+done
+DIR=$(cd "$(dirname "$SELF")" && pwd)
+
+PY="$DIR/.venv/bin/python"
+if [ ! -x "$PY" ]; then
+    echo "satgif: no venv at $DIR/.venv — create it first:" >&2
+    echo "  python3 -m venv $DIR/.venv && $DIR/.venv/bin/pip install -r $DIR/requirements.txt" >&2
+    exit 1
+fi
+exec "$PY" "$DIR/satgif.py" "$@"

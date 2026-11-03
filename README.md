@@ -25,6 +25,15 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
+The repo ships a `satgif` launcher that always runs with this venv, so you
+never type interpreter paths — every command below is just `./satgif ...`.
+To make it a global `satgif` command (runs from any directory), symlink it
+onto your PATH:
+
+```bash
+ln -s "$PWD/satgif" ~/.local/bin/satgif    # or /usr/local/bin
+```
+
 Optional but recommended — ffmpeg, which enables MP4 output next to every GIF:
 
 ```bash
@@ -63,7 +72,7 @@ echo YOUR-PROJECT-ID > ~/.satgif
 **Step 5 — verify everything**
 
 ```bash
-.venv/bin/python satgif.py doctor
+./satgif doctor
 ```
 
 Expected output:
@@ -86,7 +95,7 @@ The Maruti Suzuki plant at Hansalpur, Gujarat — farmland in 2016, major
 industrial complex by 2023:
 
 ```bash
-.venv/bin/python satgif.py generate \
+./satgif generate \
     --lat 23.4945 --lon 72.0072 \
     --radius-km 3x1.2 \
     --start 2016 --end 2023 \
@@ -127,8 +136,8 @@ make_timelapse(lat=23.4945, lon=72.0072, radius_km='3x1.2',
 ## Choosing a satellite
 
 ```bash
-.venv/bin/python satgif.py sensors            # summary table
-.venv/bin/python satgif.py sensors landsat    # one sensor in detail
+./satgif sensors            # summary table
+./satgif sensors landsat    # one sensor in detail
 ```
 
 | name | resolution | coverage | best for |
@@ -147,7 +156,7 @@ Rules of thumb:
 
 ## Flag reference
 
-Full help: `.venv/bin/python satgif.py generate --help`
+Full help: `./satgif generate --help`
 
 | flag | default | meaning |
 |---|---|---|
@@ -189,17 +198,17 @@ with zero usable scenes is skipped with a warning that names the fix.
 
 ```bash
 # 40 years of urban growth (Landsat, dry-season frames, brisk playback)
-.venv/bin/python satgif.py generate --lat 28.61 --lon 77.21 --radius-km 15 \
+./satgif generate --lat 28.61 --lon 77.21 --radius-km 15 \
     --start 1990 --end 2023 --sat landsat --season 01-03 --fps 4 \
     --title "DELHI NCR" --out delhi.gif
 
 # Nighttime lights of an industrial corridor
-.venv/bin/python satgif.py generate --lat 23.4945 --lon 72.0072 --radius-km 10 \
+./satgif generate --lat 23.4945 --lon 72.0072 --radius-km 10 \
     --start 2014 --end 2023 --sat viirs-ntl \
     --title "HANSALPUR NTL" --out hansalpur_ntl.gif
 
 # Quarterly crop cycles on a farm belt
-.venv/bin/python satgif.py generate --lat 30.9 --lon 75.8 --radius-km 5 \
+./satgif generate --lat 30.9 --lon 75.8 --radius-km 5 \
     --start 2022 --end 2024 --interval 3m --fps 3 --out punjab_crops.gif
 ```
 
@@ -217,7 +226,7 @@ with zero usable scenes is skipped with a warning that names the fix.
 | `ffmpeg not found — skipped MP4` | GIF still works → `brew install ffmpeg` to get MP4s |
 | imagery looks blurry | that's the sensor's real resolution (10 m Sentinel / 30 m Landsat). Sub-meter imagery (Google Earth's Maxar layer) is not programmatically available — this is the physics, not a bug |
 
-Still stuck? `.venv/bin/python satgif.py doctor` diagnoses the setup chain
+Still stuck? `./satgif doctor` diagnoses the setup chain
 step by step.
 
 ---

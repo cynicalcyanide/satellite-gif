@@ -1,0 +1,5 @@
+.venv/
+satgif_cache/
+*.gif
+*.mp4
+__pycache__/

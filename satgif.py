@@ -107,11 +107,22 @@ SENSORS = {
 KM_PER_DEG_LAT = 110.574
 
 
+def _parse_radius(radius_km):
+    """A number means a square; 'WxH' or (W, H) means E-W by N-S half-widths."""
+    if isinstance(radius_km, str):
+        parts = radius_km.lower().split('x')
+        return float(parts[0]), float(parts[-1])
+    if isinstance(radius_km, (tuple, list)):
+        return float(radius_km[0]), float(radius_km[1])
+    return float(radius_km), float(radius_km)
+
+
 def _region(lat, lon, radius_km):
     import ee
     import math
-    d_lat = radius_km / KM_PER_DEG_LAT
-    d_lon = radius_km / (111.320 * math.cos(math.radians(lat)))
+    rx, ry = _parse_radius(radius_km)
+    d_lat = ry / KM_PER_DEG_LAT
+    d_lon = rx / (111.320 * math.cos(math.radians(lat)))
     coords = [lon - d_lon, lat - d_lat, lon + d_lon, lat + d_lat]
     return ee.Geometry.Rectangle(coords)
 
@@ -233,7 +244,9 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
     """Build a satellite timelapse GIF (and optionally MP4).
 
     lat, lon      : center of the scene (decimal degrees)
-    radius_km     : half-width of the square bounding box
+    radius_km     : half-width of the bounding box in km. A number gives a
+                    square scene; 'WxH' (e.g. '3x1.5') or a (W, H) tuple gives
+                    W km east-west by H km north-south
     start, end    : 'YYYY' or 'YYYY-MM'; end defaults to last full year
     interval      : '1y', '6m', '3m', or '1m' — one frame per interval
     season        : 'MM-MM', e.g. '01-04' — restrict every frame's imagery
@@ -272,7 +285,9 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
     if title is None:
         title = f'{abs(lat):.4f}° {"N" if lat >= 0 else "S"}, ' \
                 f'{abs(lon):.4f}° {"E" if lon >= 0 else "W"}'
-    subtitle = f'{radius_km:g} km radius  ·  {lat:.4f}°, {lon:.4f}°'
+    rx, ry = _parse_radius(radius_km)
+    rad_txt = f'{rx:g} km' if rx == ry else f'{2*rx:g}×{2*ry:g} km'
+    subtitle = f'{rad_txt}  ·  {lat:.4f}°, {lon:.4f}°'
     os.makedirs(cache_dir, exist_ok=True)
 
     frames = []
@@ -416,8 +431,10 @@ def main(argv=None):
                    help='center latitude, decimal degrees')
     g.add_argument('--lon', type=float, required=True,
                    help='center longitude, decimal degrees')
-    g.add_argument('--radius-km', type=float, default=2.0,
-                   help='half-width of the square scene in km (default 2)')
+    g.add_argument('--radius-km', default='2',
+                   help="scene half-width in km: one number for a square "
+                        "(default 2), or WxH for a rectangle, e.g. '3x1.5' "
+                        '= 3 km east-west by 1.5 km north-south')
     g.add_argument('--start', default='2016',
                    help="first frame, 'YYYY' or 'YYYY-MM' (default 2016)")
     g.add_argument('--end', default=None,

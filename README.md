@@ -84,7 +84,7 @@ If your date range starts before 2015, use `landsat`.
 | flag | default | meaning |
 |---|---|---|
 | `--lat`, `--lon` | *required* | scene center, decimal degrees |
-| `--radius-km` | `2` | half-width of the square scene |
+| `--radius-km` | `2` | scene half-width in km. One number = square; `WxH` = rectangle, e.g. `3x1.5` is 3 km east-west by 1.5 km north-south |
 | `--start`, `--end` | `2016`, last full year | `YYYY` or `YYYY-MM` |
 | `--interval` | `1y` | one frame per `1y` / `6m` / `3m` / `1m` |
 | `--season` | off | `MM-MM`, e.g. `01-04`: build every frame from the same months of its year. Use this whenever frames flicker green/brown — that's seasons, not change |

@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
-"""satgif — parameterized satellite timelapse GIFs/MP4s from Google Earth Engine.
+"""satgif — satellite timelapse GIFs and MP4s from Google Earth Engine.
 
-Python use:
+Give it a location, a date range, and a satellite; get an annotated,
+loopable timelapse with a legend panel, timeline indicator, and correct
+imagery attribution. Frames are cloud-free median composites with a fixed
+brightness stretch, so the series shows change on the ground, not weather.
+
+Python:
     from satgif import make_timelapse
-    make_timelapse(lat=23.4945, lon=72.0072, radius_km=2,
-                   start='2015', end='2023', sat='sentinel2',
-                   title='HANSALPUR, GUJARAT', out='hansalpur.gif',
-                   project='satellite-imagery-magic')
+    make_timelapse(lat=23.4945, lon=72.0072, radius_km='3x1.2',
+                   start='2016', end='2023', season='01-04',
+                   title='HANSALPUR, GUJARAT', out='hansalpur.gif')
 
-CLI use:
-    python satgif.py generate --lat 23.4945 --lon 72.0072 --radius-km 2 \
-        --start 2015 --end 2023 --sat sentinel2 --out hansalpur.gif
-    python satgif.py sensors            # list available satellites
-    python satgif.py doctor             # diagnose auth / setup problems
+Command line:
+    python satgif.py generate --lat 23.4945 --lon 72.0072 \
+        --start 2016 --end 2023 --out hansalpur.gif
+    python satgif.py sensors        # available satellites and coverage
+    python satgif.py doctor         # diagnose install / auth / project setup
 
-Requires: a Google account with an Earth Engine-registered Cloud project
-(free for noncommercial use). First-time setup:
-    1. Register a project:  https://code.earthengine.google.com/register
-    2. Authenticate once:   python -c "import ee; ee.Authenticate()"
-    3. Pass --project <id>  (or set SATGIF_PROJECT, or ~/.satgif file)
+Setup (once): a Google account and an Earth Engine-registered Cloud project
+(free for noncommercial use) are required — there is no plain API key.
+    1. Register:      https://code.earthengine.google.com/register
+    2. Authenticate:  python -c "import ee; ee.Authenticate()"
+    3. Set project:   echo YOUR-PROJECT-ID > ~/.satgif
+Full manual: README.md. Setup check: python satgif.py doctor.
 """
 import argparse
 import hashlib
@@ -241,24 +246,50 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                    width=1200, fps=2.0, hold=2.0, max_cloud=20,
                    title=None, out='timelapse.gif', mp4=True,
                    project=None, cache_dir='satgif_cache', verbose=True):
-    """Build a satellite timelapse GIF (and optionally MP4).
+    """Build a satellite timelapse GIF (and, if ffmpeg is present, an MP4).
 
-    lat, lon      : center of the scene (decimal degrees)
-    radius_km     : half-width of the bounding box in km. A number gives a
-                    square scene; 'WxH' (e.g. '3x1.5') or a (W, H) tuple gives
-                    W km east-west by H km north-south
-    start, end    : 'YYYY' or 'YYYY-MM'; end defaults to last full year
-    interval      : '1y', '6m', '3m', or '1m' — one frame per interval
-    season        : 'MM-MM', e.g. '01-04' — restrict every frame's imagery
-                    to the same months (kills seasonal green/brown flicker)
-    sat           : key from SENSORS ('sentinel2', 'landsat', 'viirs-ntl')
-    width         : frame width in pixels (height follows the bbox aspect)
-    fps, hold     : playback speed; extra seconds the final frame stays up
-    max_cloud     : max per-scene cloud % allowed into composites
-    title         : legend heading (default: formatted coordinates)
-    out           : output GIF path; the MP4 (if ffmpeg exists) sits beside it
-    project       : GEE Cloud project id (or SATGIF_PROJECT env / ~/.satgif)
-    Returns the list of PIL frames.
+    Each frame is a cloud-free median composite of every usable scene in its
+    interval, rendered with a fixed per-sensor brightness stretch and stamped
+    with a legend panel (title, period label, timeline indicator, scene size,
+    coordinates, attribution).
+
+    Args:
+        lat, lon: Scene center in decimal degrees (negative = south/west).
+        radius_km: Scene half-width in km. A number gives a square scene;
+            'WxH' (e.g. '3x1.2') or a (W, H) tuple gives W km east-west by
+            H km north-south — a 2*W by 2*H km scene.
+        start, end: Frame range, 'YYYY' or 'YYYY-MM'. `end` defaults to the
+            last full calendar year.
+        interval: One frame per '1y', '6m', '3m', or '1m'.
+        season: 'MM-MM' (e.g. '01-04') — restrict every frame's imagery to
+            the same months of its year. Fixes seasonal green/brown flicker.
+        sat: Sensor key — 'sentinel2' (10 m, 2015+), 'landsat' (30 m, 1984+),
+            or 'viirs-ntl' (nighttime lights, yearly only). See SENSORS.
+        width: Frame width in pixels; height follows the scene's aspect.
+        fps: Playback speed in frames per second.
+        hold: Extra seconds the final frame stays on screen.
+        max_cloud: Max per-scene cloud percentage admitted to composites.
+            Raise it if frames come back empty; lower it if frames look hazy.
+        title: Legend heading. Defaults to formatted coordinates.
+        out: Output GIF path. The MP4 is written beside it (same stem).
+        mp4: Set False to skip the MP4 even when ffmpeg is available.
+        project: Earth Engine Cloud project id. Falls back to the
+            SATGIF_PROJECT environment variable, then the ~/.satgif file.
+        cache_dir: Downloaded frames are cached here by parameter hash, so
+            reruns that only change styling or timing cost zero refetches.
+        verbose: Print per-frame progress.
+
+    Returns:
+        The rendered frames as a list of PIL Images.
+
+    Raises:
+        ValueError: Unknown sensor, or an interval the sensor cannot serve.
+        SystemExit: Earth Engine initialization failed (run `satgif.py
+            doctor` for step-by-step fixes), or fewer than two frames could
+            be built.
+
+    Frames with no usable scenes are skipped with a printed warning naming
+    the fix rather than raising.
     """
     import ee
     import requests

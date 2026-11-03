@@ -7,6 +7,10 @@ with a legend panel, a timeline indicator, and correct imagery attribution.
 Built on [Google Earth Engine](https://earthengine.google.com/) — free for
 research and noncommercial use.
 
+Working on this repo with an AI coding agent? Point it at
+[`AGENTS.md`](AGENTS.md) — operating notes, verification steps, and
+extension conventions written for agents.
+
 ---
 
 ## Setup (once, ~5 minutes)

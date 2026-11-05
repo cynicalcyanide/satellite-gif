@@ -241,6 +241,28 @@ def _resolve_project(project):
 
 # ---------------------------------------------------------------- main API
 
+def _write_mp4(rendered, mp4_path, fps, hold):
+    """Encode frames to MP4 via ffmpeg.
+
+    Frames go to a fresh per-run temp dir: ffmpeg's f_%03d.png pattern reads
+    every consecutive file present, so a shared, reused dir would append
+    leftover frames from an earlier, longer run to this video.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix='satgif_render_') as tmp:
+        for i, f in enumerate(rendered):
+            if f.width % 2 or f.height % 2:
+                f = f.crop((0, 0, f.width - f.width % 2,
+                            f.height - f.height % 2))
+            f.save(os.path.join(tmp, f'f_{i:03d}.png'))
+        subprocess.run(
+            ['ffmpeg', '-y', '-framerate', str(fps),
+             '-i', os.path.join(tmp, 'f_%03d.png'),
+             '-vf', f'tpad=stop_mode=clone:stop_duration={hold}',
+             '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
+             mp4_path], check=True, capture_output=True)
+
+
 def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                    interval='1y', season=None, sat='sentinel2',
                    width=1200, fps=2.0, hold=2.0, max_cloud=20,
@@ -367,20 +389,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         print(f'wrote {out} ({n} frames)')
 
     if mp4 and shutil.which('ffmpeg'):
-        tmp = os.path.join(cache_dir, '_render')
-        os.makedirs(tmp, exist_ok=True)
-        for i, f in enumerate(rendered):
-            if f.width % 2 or f.height % 2:
-                f = f.crop((0, 0, f.width - f.width % 2,
-                            f.height - f.height % 2))
-            f.save(os.path.join(tmp, f'f_{i:03d}.png'))
         mp4_path = os.path.splitext(out)[0] + '.mp4'
-        subprocess.run(
-            ['ffmpeg', '-y', '-framerate', str(fps),
-             '-i', os.path.join(tmp, 'f_%03d.png'),
-             '-vf', f'tpad=stop_mode=clone:stop_duration={hold}',
-             '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18',
-             mp4_path], check=True, capture_output=True)
+        _write_mp4(rendered, mp4_path, fps, hold)
         if verbose:
             print(f'wrote {mp4_path}')
     elif mp4 and verbose:

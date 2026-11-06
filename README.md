@@ -171,13 +171,14 @@ Full help: `./satgif generate --help`
 | `--hold` | `2` | extra seconds the final frame stays on screen |
 | `--max-cloud` | `20` | max per-scene cloud % allowed into a composite. Frames empty → raise it. Frames hazy → lower it |
 | `--title` | the coordinates | legend heading |
+| `--scale-bar` | off | draw a distance scale bar (0 / mid / end labels, round 1-2-5 length ≈ ⅕ of the scene width) in the lower-left corner |
 | `--out` | `timelapse.gif` | output GIF path; the MP4 is written beside it |
 | `--no-mp4` | off | skip the MP4 even when ffmpeg is installed |
 | `--project` | `~/.satgif` / env | GEE project id override |
 | `--cache-dir` | `satgif_cache` | where downloaded frames are cached |
 
 **Iterating is cheap.** Downloaded frames are cached by parameter hash, so
-rerunning with different `--fps`, `--hold`, or `--title` is instant. Changing
+rerunning with different `--fps`, `--hold`, `--title`, or `--scale-bar` is instant. Changing
 location, dates, sensor, season, or width re-fetches, because those change
 the imagery itself.
 

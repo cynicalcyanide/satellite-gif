@@ -74,11 +74,15 @@ Semantics an agent gets wrong if it only skims the flag table:
   early frames, which are skipped with warnings — prefer switching sensor.
 - Do not mix sensors across one GIF; make two GIFs instead.
 - `--width` is pixels; frame height follows the scene's km aspect ratio.
+- `--scale-bar` is a pure overlay (lower-left, length auto-picked from
+  1/2/5 × 10^k near ⅕ of the scene width, in m below 1 km). It is not in
+  the cache hash — toggling it re-renders from cache. The legend's size
+  text is always the full scene, `2W×2H km`.
 
 **Cost model / cache.** Each frame is one GEE query plus one image
 download, cached in `--cache-dir` keyed on a hash of
 `(sat, lat, lon, radius, dates, season, max_cloud, width)`. Changing only
-`--fps`, `--hold`, `--title`, or `--out` re-renders from cache (seconds);
+`--fps`, `--hold`, `--title`, `--scale-bar`, or `--out` re-renders from cache (seconds);
 changing anything in the hash refetches those frames (tens of seconds to
 minutes). Batch your parameter decisions before fetching; iterate styling
 freely afterwards. Never commit the cache.

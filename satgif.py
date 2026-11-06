@@ -229,6 +229,21 @@ def _draw_panel(img, label, i, n, title, subtitle, attribution):
     return Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
 
 
+def _enhance(img, contrast=1.0, sharpen=0.0):
+    """Fixed, per-pixel contrast and sharpening applied identically to every
+    frame. Contrast pivots on mid-grey (128), not the frame's own mean, so
+    frames with different content can't drift apart (no flicker)."""
+    from PIL import ImageFilter
+    if contrast != 1.0:
+        lut = [max(0, min(255, round((v - 128) * contrast + 128)))
+               for v in range(256)]
+        img = img.point(lut * 3)
+    if sharpen > 0:
+        img = img.filter(ImageFilter.UnsharpMask(
+            radius=1.5, percent=int(sharpen * 100), threshold=2))
+    return img
+
+
 def _nice_length(km):
     """Largest 1/2/5 x 10^k km value not exceeding `km`."""
     import math
@@ -324,7 +339,8 @@ def _write_mp4(rendered, mp4_path, fps, hold):
 def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                    interval='1y', season=None, sat='sentinel2',
                    width=1200, fps=2.0, hold=2.0, max_cloud=20,
-                   title=None, scale_bar=False, out='timelapse.gif', mp4=True,
+                   title=None, scale_bar=False, contrast=1.0, sharpen=0.0,
+                   out='timelapse.gif', mp4=True,
                    project=None, cache_dir='satgif_cache', verbose=True):
     """Build a satellite timelapse GIF (and, if ffmpeg is present, an MP4).
 
@@ -353,6 +369,10 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         title: Legend heading. Defaults to formatted coordinates.
         scale_bar: Draw a distance scale bar in the lower-left corner
             (a round 1/2/5 length near a fifth of the scene width).
+        contrast: Contrast multiplier around mid-grey; 1.0 = unchanged,
+            1.2-1.4 = punchier, <1 = flatter. Imagery only, not the legend.
+        sharpen: Unsharp-mask strength; 0 = off, 0.5-1.5 typical. Above
+            ~1.5, halos appear around sharp edges such as panel rows.
         out: Output GIF path. The MP4 is written beside it (same stem).
         mp4: Set False to skip the MP4 even when ffmpeg is available.
         project: Earth Engine Cloud project id. Falls back to the
@@ -382,6 +402,10 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
     sensor = SENSORS[sat]
     if sensor['min_interval_months'] >= 12 and interval != '1y':
         raise ValueError(f'{sat} only supports --interval 1y')
+    if contrast <= 0:
+        raise ValueError('contrast must be > 0 (1.0 = unchanged)')
+    if sharpen < 0:
+        raise ValueError('sharpen must be >= 0 (0 = off)')
 
     project = _resolve_project(project)
     try:
@@ -436,6 +460,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         raise SystemExit('fewer than 2 frames produced — nothing to animate')
 
     n = len(frames)
+    if contrast != 1.0 or sharpen > 0:
+        frames = [_enhance(f, contrast, sharpen) for f in frames]
     rendered = [_draw_panel(f, lbl, i, n, title, subtitle,
                             sensor['attribution'])
                 for i, (f, lbl) in enumerate(zip(frames, labels))]
@@ -520,6 +546,7 @@ def _cmd_generate(args):
                    season=args.season, sat=args.sat, width=args.width,
                    fps=args.fps, hold=args.hold, max_cloud=args.max_cloud,
                    title=args.title, scale_bar=args.scale_bar,
+                   contrast=args.contrast, sharpen=args.sharpen,
                    out=args.out, mp4=not args.no_mp4,
                    project=args.project, cache_dir=args.cache_dir)
 
@@ -563,6 +590,12 @@ def main(argv=None):
                    help='legend heading (default: the coordinates)')
     g.add_argument('--scale-bar', action='store_true',
                    help='draw a distance scale bar in the lower-left corner')
+    g.add_argument('--contrast', type=float, default=1.0,
+                   help='contrast multiplier for the imagery; 1.0 = unchanged, '
+                        '1.2-1.4 = punchier (default: 1.0)')
+    g.add_argument('--sharpen', type=float, default=0.0,
+                   help='unsharp-mask strength; 0 = off, 0.5-1.5 typical '
+                        '(default: 0)')
     g.add_argument('--out', default='timelapse.gif',
                    help='output GIF path; MP4 lands beside it')
     g.add_argument('--no-mp4', action='store_true',

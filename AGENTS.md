@@ -78,11 +78,16 @@ Semantics an agent gets wrong if it only skims the flag table:
   1/2/5 × 10^k near ⅕ of the scene width, in m below 1 km). It is not in
   the cache hash — toggling it re-renders from cache. The legend's size
   text is always the full scene, `2W×2H km`.
+- `--contrast` / `--sharpen` are post-download, per-pixel and fixed
+  across frames (contrast pivots on grey 128, never the frame mean —
+  keep it that way or you reintroduce flicker). Not in the cache hash.
+  They touch only the imagery; legend and scale bar are drawn after.
 
 **Cost model / cache.** Each frame is one GEE query plus one image
 download, cached in `--cache-dir` keyed on a hash of
 `(sat, lat, lon, radius, dates, season, max_cloud, width)`. Changing only
-`--fps`, `--hold`, `--title`, `--scale-bar`, or `--out` re-renders from cache (seconds);
+`--fps`, `--hold`, `--title`, `--scale-bar`, `--contrast`,
+`--sharpen`, or `--out` re-renders from cache (seconds);
 changing anything in the hash refetches those frames (tens of seconds to
 minutes). Batch your parameter decisions before fetching; iterate styling
 freely afterwards. Never commit the cache.

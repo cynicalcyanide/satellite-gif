@@ -229,6 +229,64 @@ def _draw_panel(img, label, i, n, title, subtitle, attribution):
     return Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
 
 
+def _nice_length(km):
+    """Largest 1/2/5 x 10^k km value not exceeding `km`."""
+    import math
+    k = 10 ** math.floor(math.log10(km))
+    for m in (5, 2, 1):
+        if m * k <= km:
+            return m * k
+    return k
+
+
+def _draw_scale_bar(img, scene_w_km):
+    """Scale bar in the lower-left corner, matching the legend panel style.
+
+    Length is a round 1/2/5 value near a fifth of the scene width; the bar
+    is split into black/white segments with 0 / mid / end labels.
+    """
+    from PIL import Image, ImageDraw
+    s = img.width / 2400
+    f_txt, _, _ = _fonts(s)
+    px_per_km = img.width / scene_w_km
+    length_km = _nice_length(scene_w_km / 5)
+    bar_w = int(round(length_km * px_per_km))
+    unit = 'km' if length_km >= 1 else 'm'
+    fmt = (lambda v: f'{v:g}') if unit == 'km' else (lambda v: f'{v * 1000:g}')
+
+    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    PAD = int(28 * s)
+    BAR_H = max(8, int(24 * s))
+    txt_h = int(34 * s)
+    gap = int(10 * s)
+    end_txt = f'{fmt(length_km)} {unit}'
+    end_w = d.textlength(end_txt, font=f_txt)
+    W = bar_w + 2 * PAD + int(end_w / 2)
+    H = 2 * PAD + txt_h + gap + BAR_H
+    PX = int(40 * s)
+    PY = img.height - H - int(40 * s)
+    d.rounded_rectangle([PX, PY, PX + W, PY + H], radius=int(22 * s),
+                        fill=(12, 14, 18, 190))
+    bx0 = PX + PAD
+    by0 = PY + PAD + txt_h + gap
+    nseg = 4
+    for j in range(nseg):
+        x0 = bx0 + bar_w * j / nseg
+        x1 = bx0 + bar_w * (j + 1) / nseg
+        fill = (255, 255, 255, 255) if j % 2 == 0 else (20, 22, 26, 255)
+        d.rectangle([x0, by0, x1, by0 + BAR_H], fill=fill)
+    d.rectangle([bx0, by0, bx0 + bar_w, by0 + BAR_H],
+                outline=(255, 255, 255, 255), width=max(1, int(2 * s)))
+    for v, x in ((0, bx0), (length_km / 2, bx0 + bar_w / 2),
+                 (length_km, bx0 + bar_w)):
+        t = end_txt if v == length_km else fmt(v)
+        tw = d.textlength(t, font=f_txt)
+        d.text((x - tw / 2, PY + PAD), t, font=f_txt,
+               fill=(230, 233, 238, 255))
+    return Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
+
+
 def _resolve_project(project):
     if project:
         return project
@@ -266,7 +324,7 @@ def _write_mp4(rendered, mp4_path, fps, hold):
 def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                    interval='1y', season=None, sat='sentinel2',
                    width=1200, fps=2.0, hold=2.0, max_cloud=20,
-                   title=None, out='timelapse.gif', mp4=True,
+                   title=None, scale_bar=False, out='timelapse.gif', mp4=True,
                    project=None, cache_dir='satgif_cache', verbose=True):
     """Build a satellite timelapse GIF (and, if ffmpeg is present, an MP4).
 
@@ -293,6 +351,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         max_cloud: Max per-scene cloud percentage admitted to composites.
             Raise it if frames come back empty; lower it if frames look hazy.
         title: Legend heading. Defaults to formatted coordinates.
+        scale_bar: Draw a distance scale bar in the lower-left corner
+            (a round 1/2/5 length near a fifth of the scene width).
         out: Output GIF path. The MP4 is written beside it (same stem).
         mp4: Set False to skip the MP4 even when ffmpeg is available.
         project: Earth Engine Cloud project id. Falls back to the
@@ -339,7 +399,7 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         title = f'{abs(lat):.4f}° {"N" if lat >= 0 else "S"}, ' \
                 f'{abs(lon):.4f}° {"E" if lon >= 0 else "W"}'
     rx, ry = _parse_radius(radius_km)
-    rad_txt = f'{rx:g} km' if rx == ry else f'{2*rx:g}×{2*ry:g} km'
+    rad_txt = f'{2*rx:g}×{2*ry:g} km'
     subtitle = f'{rad_txt}  ·  {lat:.4f}°, {lon:.4f}°'
     os.makedirs(cache_dir, exist_ok=True)
 
@@ -379,6 +439,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
     rendered = [_draw_panel(f, lbl, i, n, title, subtitle,
                             sensor['attribution'])
                 for i, (f, lbl) in enumerate(zip(frames, labels))]
+    if scale_bar:
+        rendered = [_draw_scale_bar(f, 2 * rx) for f in rendered]
 
     pal = [f.convert('P', palette=Image.ADAPTIVE, colors=128)
            for f in rendered]
@@ -457,7 +519,8 @@ def _cmd_generate(args):
                    start=args.start, end=args.end, interval=args.interval,
                    season=args.season, sat=args.sat, width=args.width,
                    fps=args.fps, hold=args.hold, max_cloud=args.max_cloud,
-                   title=args.title, out=args.out, mp4=not args.no_mp4,
+                   title=args.title, scale_bar=args.scale_bar,
+                   out=args.out, mp4=not args.no_mp4,
                    project=args.project, cache_dir=args.cache_dir)
 
 
@@ -498,6 +561,8 @@ def main(argv=None):
                    help='max scene cloud %% in composites (default 20)')
     g.add_argument('--title', default=None,
                    help='legend heading (default: the coordinates)')
+    g.add_argument('--scale-bar', action='store_true',
+                   help='draw a distance scale bar in the lower-left corner')
     g.add_argument('--out', default='timelapse.gif',
                    help='output GIF path; MP4 lands beside it')
     g.add_argument('--no-mp4', action='store_true',

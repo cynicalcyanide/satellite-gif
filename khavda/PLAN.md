@@ -61,9 +61,10 @@ GIF renders from the cache, so both cost one fetch.
 
 ## 2. The deck
 
-Beamer, 16:9, `beamercolorthemeXKDR` (your `.sty`, renamed so
-`\usecolortheme{XKDR}` finds it), `{X}KDR` logos on the title slide and in
-every frame-title bar. Source: `khavda/deck/khavda.tex`; charts from
+Beamer on the house skeleton from the NHM deck: `\usetheme{boxes}` with
+`\usepackage{beamercolorthemeXKDR}`, 10 pt, 16:9, 0.7 cm margins, the
+logomark via `\logo`, the frame counter in the navigation slot, a standard
+`\titlepage` with the primary logo, and 6.5 pt source lines at the foot. Source: `khavda/deck/khavda.tex`; charts from
 `khavda/deck/figures_a.py` and `figures_b.py`; TikZ diagrams in
 `khavda/deck/tikz/` (each testable standalone with `tikz/test_tikz.sh`).
 Build: `./khavda/build_deck.sh`.

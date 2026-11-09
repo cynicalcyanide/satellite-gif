@@ -8,39 +8,21 @@
 % slide names the file it wants). Satellite frames from make_frames.sh go in
 % frames/. Every slot shows a grey placeholder until its file exists, so the
 % deck always compiles.
-\documentclass[aspectratio=169,10pt,t]{beamer}
+\documentclass[10pt,aspectratio=169]{beamer}
+% House skeleton (as in the XKDR NHM deck): boxes theme + XKDR colour theme,
+% 0.7 cm margins, logomark via \logo, frame counter in the navigation slot.
+% The theme file normally lives in ../XKDRORGFILES/; a copy sits beside this file.
+\usepackage{graphicx,booktabs,array,tabularx,colortbl,textcomp}
+\usepackage{beamercolorthemeXKDR}
+\usetheme{boxes}
+\setbeamersize{text margin left=0.7cm,text margin right=0.7cm}
+\logo{\includegraphics[width=0.65cm]{logos/xkdr_mark.png}}
+\addtobeamertemplate{navigation symbols}{}{\usebeamerfont{footline}\usebeamercolor[fg]{footline}\hspace{1em}\insertframenumber/\inserttotalframenumber}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[scaled=0.95]{helvet}
-\renewcommand{\familydefault}{\sfdefault}
-\usepackage{graphicx,booktabs,array,tcolorbox,animate}
+\usepackage{tcolorbox,animate}
 \input{preamble_common.tex}
-
-% ---- theme ---------------------------------------------------------------
-\usetheme{default}
-\usecolortheme{XKDR}
-\usefonttheme{professionalfonts}
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{itemize items}{\textcolor{SpOrange}{\rule[0.15ex]{0.8ex}{0.8ex}}}
-\setbeamertemplate{enumerate items}[default]
-\setbeamercolor{normal text}{fg=SpNearBlack,bg=white}
-\setbeamercolor{frametitle}{fg=SpNearBlack,bg=SpLightGray}
-\setbeamercolor{item}{fg=SpOrange}
-\setbeamercolor{enumerate item}{fg=SpOrange}
-\setbeamerfont{frametitle}{size=\large,series=\bfseries}
-\setbeamersize{text margin left=8mm,text margin right=8mm}
 \setlength{\leftmargini}{1.2em}
-\setbeamertemplate{frametitle}{%
-  \vspace{-1pt}%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=9.5mm,dp=2mm,leftskip=8mm,rightskip=8mm]{frametitle}%
-    \usebeamerfont{frametitle}\insertframetitle\hfill
-    \raisebox{-1mm}{\includegraphics[height=5.5mm]{logos/xkdr_mark.png}}%
-  \end{beamercolorbox}\vspace{1.5mm}}
-\setbeamertemplate{footline}{%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=4.5mm,dp=2.5mm,leftskip=8mm,rightskip=8mm]{normal text}%
-    \scriptsize\textcolor{Muted}{The Khavda Renewable Energy Park \,\textperiodcentered\, November 2026}%
-    \hfill\scriptsize\textcolor{Muted}{\insertframenumber/\inserttotalframenumber}%
-  \end{beamercolorbox}}
 
 % ---- helpers ---------------------------------------------------------------
 % \imgslot{file}{width}{height}{what to drop in}: the image, or a grey box asking for it
@@ -53,7 +35,7 @@
 \newcommand{\dia}[2]{\resizebox{!}{#2}{\input{tikz/#1.tex}}}      % diagram capped at height
 \newcommand{\diaw}[2]{\resizebox{#2}{!}{\input{tikz/#1.tex}}}     % diagram capped at width
 \newcommand{\kpi}[2]{{\color{SpOrange}\fontsize{19}{22}\selectfont\textbf{#1}}\\[1pt]{\footnotesize\color{Ink2}#2}}
-\newcommand{\src}[1]{\par\vspace{1mm}{\tiny\color{Muted}#1}}
+\newcommand{\src}[1]{\par\vfill{\fontsize{6.5}{7.5}\selectfont #1\par}}
 \newcommand{\lead}[1]{{\small\textbf{#1}}\par\vspace{1mm}}
 \newcommand{\card}[3]{\begin{tcolorbox}[colback=#1,colframe=#2,arc=3pt,left=2.5mm,right=2.5mm,top=0.8mm,bottom=0.8mm,boxsep=0.3mm]{\footnotesize\textbf{#3}}\\[1pt]\scriptsize}
 \newenvironment{pts}{\begin{itemize}\footnotesize\setlength{\itemsep}{3pt}}{\end{itemize}}
@@ -74,28 +56,31 @@
 \begin{document}
 
 % ==== 1. Title ==============================================================
-{\setbeamertemplate{footline}{}
+\title{The Khavda Renewable Energy Park}
+\subtitle{Engineering, industrial organisation, grid physics and political economy\\
+  $24^\circ07'$\,N, $69^\circ21'$\,E, Great Rann of Kutch\\[4pt]
+  \small 726 km\textsuperscript{2} footprint \,\textperiodcentered\, 30 GW target \,\textperiodcentered\, Rs 1,50,000 crore capex}
+\author{XKDR Forum}
+\date{November 2026}
+\titlegraphic{\includegraphics[width=2.4cm]{logos/xkdr_logo_wide.png}}
+\begin{frame}\titlepage\end{frame}
+
+% ==== 1b. The site from orbit (only when a title image exists) ===============
+\iftitleimage
 \begin{frame}[plain]
   \begin{tikzpicture}[remember picture,overlay]
-    \iftitleimage
-      \node[anchor=center,inner sep=0] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{\titleimage}};
-      \fill[SpNearBlack,opacity=0.55] (current page.south west) rectangle ([yshift=4.1cm]current page.south east);
-    \else
-      \fill[SpNearBlack] (current page.south west) rectangle (current page.north east);
-      \node[anchor=north east,xshift=-8mm,yshift=-8mm,text width=6cm,align=right,font=\scriptsize\color{Grey}] at (current page.north east)
-        {Full-bleed Sentinel-2 still of the solar blocks on the salt crust goes here:\\ \texttt{images/title\_satellite.png}};
-    \fi
-    \node[anchor=south west,xshift=8mm,yshift=5mm,align=left] at (current page.south west){%
-      {\fontsize{26}{30}\selectfont\bfseries\color{white}The Khavda Renewable Energy Park}\\[4pt]
-      {\normalsize\color{white}Engineering, industrial organisation, grid physics and political economy}\\[2pt]
-      {\small\color{Grey}$24^\circ07'$\,N, $69^\circ21'$\,E \,\textperiodcentered\, Great Rann of Kutch, Gujarat}\\[7pt]
-      {\small\color{white}\textbf{726 km\textsuperscript{2}} footprint \quad\textcolor{SpOrange}{|}\quad \textbf{30 GW} target \quad\textcolor{SpOrange}{|}\quad \textbf{Rs 1,50,000 crore} capex}};
-    \node[anchor=south east,xshift=-8mm,yshift=6mm] at (current page.south east){\includegraphics[width=2.8cm]{logos/xkdr_logo_wide.png}};
+    \node[anchor=center,inner sep=0] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{\titleimage}};
+    \fill[SpNearBlack,opacity=0.55] (current page.south west) rectangle ([yshift=2.2cm]current page.south east);
+    \node[anchor=south west,xshift=7mm,yshift=4mm,align=left] at (current page.south west){%
+      {\large\bfseries\color{white}The Khavda blocks on the salt crust of the Great Rann}\\[3pt]
+      {\small\color{white}\textbf{726 km\textsuperscript{2}} footprint \quad\textcolor{SpOrange}{|}\quad \textbf{30 GW} target \quad\textcolor{SpOrange}{|}\quad \textbf{Rs 1,50,000 crore} capex}\\[2pt]
+      {\scriptsize\color{Grey}Sentinel-2; contains modified Copernicus Sentinel data}};
   \end{tikzpicture}
-\end{frame}}
+\end{frame}
+\fi
 
 % ==== 2. Two clocks =========================================================
-\begin{frame}{The core thesis: the two clocks}
+\begin{frame}[t]{The core thesis: the two clocks}
   \begin{pts}
     \item \textbf{On-site generation clock, 12 to 18 months.} Flat state wasteland, a vertically integrated supply chain and robotic installation let developers add over 5 GW of solar and wind a year.
     \item \textbf{Off-site transmission clock, 36 to 60 months.} 765 kV AC and $\pm$800 kV HVDC lines cross hundreds of kilometres of private farmland and meet right-of-way resistance.
@@ -106,7 +91,7 @@
 \end{frame}
 
 % ==== 3. Spatial scale ======================================================
-\begin{frame}{Spatial scale and how it grew}
+\begin{frame}[t]{Spatial scale and how it grew}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       \imgslot{images/sat_2023.png}{\textwidth}{2.4cm}{Sentinel-2 still, early 2023: salt flat, roads, first arrays}\\[2pt]
@@ -126,7 +111,7 @@
 
 % ==== 3b. Animation (only when frames exist) ==================================
 \ifsatframes
-\begin{frame}{Quarter by quarter, 2020 to 2026}
+\begin{frame}[t]{Quarter by quarter, 2020 to 2026}
   \centering
   \animategraphics[autoplay,loop,width=0.86\textwidth,controls={play,stop}]{1}{frames/khavda_}{00}{\satLast}
   \src{Sentinel-2 cloud-free quarterly composites, one second per frame; contains modified Copernicus Sentinel data.}
@@ -134,7 +119,7 @@
 \fi
 
 % ==== 4. The lease ==========================================================
-\begin{frame}{Political economy of land: the 40-year wasteland lease}
+\begin{frame}[t]{Political economy of land: the 40-year wasteland lease}
   \begin{columns}[T]
     \begin{column}{0.36\textwidth}
       \begin{pts}
@@ -154,7 +139,7 @@
 \end{frame}
 
 % ==== 5. Border rules =======================================================
-\begin{frame}{Border rules and the 2023 reallocation}
+\begin{frame}[t]{Border rules and the 2023 reallocation}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{pts}
@@ -173,7 +158,7 @@
 \end{frame}
 
 % ==== 6. Who builds =========================================================
-\begin{frame}{A multi-developer enclave: who builds inside Khavda}
+\begin{frame}[t]{A multi-developer enclave: who builds inside Khavda}
   \lead{Not one firm's park: a private anchor beside central and state public-sector utilities.}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
@@ -199,7 +184,7 @@
 \end{frame}
 
 % ==== 7. Two models =========================================================
-\begin{frame}{Two institutional models: anchor IPP and plug-and-play landlords}
+\begin{frame}[t]{Two institutional models: anchor IPP and plug-and-play landlords}
   \begin{pts}
     \item \textbf{Self-build.} AGEL and NTPC put plants directly on their parcels with in-house or contracted EPC teams.
     \item \textbf{Landlords.} GSECL and GIPCL act as Solar Power Park Developers: they build the 33/400 kV pooling stations, roads and water points, then sub-lease plots at 1.85 ha per MW to GUVNL auction winners. The tenants are the control group: same land, same rent, bought at auction.
@@ -209,13 +194,13 @@
 \end{frame}
 
 % ==== 8. Bargain ============================================================
-\begin{frame}{The equilibrium: how both sides make money}
+\begin{frame}[t]{The equilibrium: how both sides make money}
   \lead{The public-private bargain: barren salt marsh becomes a tax base and cheap power for the state, and a multi-stage monetisation machine for the group.}
   \centering\dia{d08_bargain}{4.9cm}
 \end{frame}
 
 % ==== 9. Resource physics ===================================================
-\begin{frame}{Resource physics: why Kutch is a meteorological sweet spot}
+\begin{frame}[t]{Resource physics: why Kutch is a meteorological sweet spot}
   \begin{columns}[T]
     \begin{column}{0.38\textwidth}
       \begin{pts}
@@ -232,7 +217,7 @@
 \end{frame}
 
 % ==== 10. Solar hardware ====================================================
-\begin{frame}{Solar hardware: N-type TOPCon, salt albedo and trackers}
+\begin{frame}[t]{Solar hardware: N-type TOPCon, salt albedo and trackers}
   \begin{pts}
     \item \textbf{Cell chemistry.} Phosphorus-doped TOPCon cells avoid boron-oxygen light-induced degradation and lose less in 48\,°C heat: $-0.29\%$ per °C against $-0.35\%$ for PERC.
     \item \textbf{Albedo.} The crust is 35 to 45\% sodium chloride and reflects 40 to 55\% of light onto the rear glass of bifacial modules.
@@ -242,7 +227,7 @@
 \end{frame}
 
 % ==== 11. Wind ==============================================================
-\begin{frame}{Wind aerodynamics: the 5.2 MW turbine}
+\begin{frame}[t]{Wind aerodynamics: the 5.2 MW turbine}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \begin{pts}
@@ -262,7 +247,7 @@
 \end{frame}
 
 % ==== 12. Diurnal ===========================================================
-\begin{frame}{Diurnal and seasonal complementarity}
+\begin{frame}[t]{Diurnal and seasonal complementarity}
   \begin{columns}[T]
     \begin{column}{0.62\textwidth}
       \includegraphics[width=\textwidth]{figures/fig12_diurnal.png}
@@ -279,7 +264,7 @@
 \end{frame}
 
 % ==== 13. Soil ==============================================================
-\begin{frame}{Desert civil engineering: sabkha soil, brine and seismic zone V}
+\begin{frame}[t]{Desert civil engineering: sabkha soil, brine and seismic zone V}
   \begin{pts}
     \item \textbf{Terrain.} 3 to 4 m above sea level; monsoon tides and runoff turn the top soil into hypersaline slush (CBR under 2\%). Groundwater at 3.8 to 5.7 m is saline; the 2001 Bhuj earthquake (M\textsubscript{w} 7.7) was nearby.
     \item \textbf{Countermeasures.} Pre-augered micro-piles 4 to 6 m deep with ZAM / C5-M coatings and sulphate-resisting slag cement; pile-raft foundations under the turbines; roads at least 150 mm above finished ground; inverters on plinths; 33 kV cables bedded in sand.
@@ -288,7 +273,7 @@
 \end{frame}
 
 % ==== 14. Auxiliary =========================================================
-\begin{frame}{The auxiliary ecosystem and waterless operations}
+\begin{frame}[t]{The auxiliary ecosystem and waterless operations}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       \begin{pts}
@@ -306,7 +291,7 @@
 \end{frame}
 
 % ==== 15. Scoreboard ========================================================
-\begin{frame}{The master buildout scoreboard (CMIE CapEx data)}
+\begin{frame}[t]{The master buildout scoreboard (CMIE CapEx data)}
   \lead{Generation is mostly built; storage is half built; the grid spine is almost entirely still to come.}
   {\scriptsize\setlength{\tabcolsep}{4pt}\renewcommand{\arraystretch}{1.25}
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{3.1cm} >{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{3.0cm}@{}}
@@ -321,6 +306,7 @@
     \textbf{ISTS transmission}, Rs 55,552 crore, 8 projects & \textcolor{SpOrange}{\textbf{1,500 MVA}}, Rs 334 crore (ICT at KPS3) & 40,500 MVA, 5,616 circuit-km, Rs 55,218 crore & \\
     \bottomrule
   \end{tabular}}
+  \vspace{4mm}
   \begin{columns}[T]
     \begin{column}{0.33\textwidth}\kpi{37\%}{of tracked generation MW complete}\end{column}
     \begin{column}{0.33\textwidth}\kpi{32\%}{of tracked battery MWh complete}\end{column}
@@ -330,7 +316,7 @@
 \end{frame}
 
 % ==== 16. FY phasing ========================================================
-\begin{frame}{Fiscal-year phasing: the two clocks in the data}
+\begin{frame}[t]{Fiscal-year phasing: the two clocks in the data}
   \centering
   \includegraphics[width=0.74\textwidth]{figures/fig16_two_clocks.png}
   \par\vspace{0.5mm}
@@ -338,7 +324,7 @@
 \end{frame}
 
 % ==== 17. Developers ========================================================
-\begin{frame}{Developer-by-developer execution (CMIE CapEx data)}
+\begin{frame}[t]{Developer-by-developer execution (CMIE CapEx data)}
   \centering
   \includegraphics[width=0.74\textwidth]{figures/fig17_developers.png}
   \par\vspace{1mm}
@@ -349,7 +335,7 @@
 \end{frame}
 
 % ==== 18. SPVs ==============================================================
-\begin{frame}{Coasean industrial organisation: why Adani uses dozens of SPVs}
+\begin{frame}[t]{Coasean industrial organisation: why Adani uses dozens of SPVs}
   \centering\dia{d18_spv_hierarchy}{4.1cm}
   \vspace{1mm}
   \begin{columns}[T]
@@ -367,7 +353,7 @@
 \end{frame}
 
 % ==== 19. Revenue ===========================================================
-\begin{frame}{Revenue mechanics and the battery arbitrage pivot}
+\begin{frame}[t]{Revenue mechanics and the battery arbitrage pivot}
   \begin{columns}[T]
     \begin{column}{0.42\textwidth}
       \begin{pts}
@@ -383,7 +369,7 @@
 \end{frame}
 
 % ==== 20. Project finance ===================================================
-\begin{frame}{Project finance: a 1 GW\textsubscript{AC} solar + 500 MWh battery SPV}
+\begin{frame}[t]{Project finance: a 1 GW\textsubscript{AC} solar + 500 MWh battery SPV}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       {\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.2}
@@ -414,7 +400,7 @@
 \end{frame}
 
 % ==== 21. Not a free battery ================================================
-\begin{frame}{Why the grid is not a free battery: the 15-minute clock}
+\begin{frame}[t]{Why the grid is not a free battery: the 15-minute clock}
   \begin{pts}
     \item \textbf{Physics.} Electrons from Khavda flow down the least-impedance path to nearby Gujarat loads; a Mumbai data centre draws from nearby Maharashtra plants. Lines store nothing: any mismatch between injection and drawal moves the frequency off 50.00 Hz.
     \item \textbf{Money.} Generator and buyer are metered by 0.2S-class ABT special energy meters in 15-minute blocks, 96 a day. There is no interstate banking, and state rules bar drawing banked solar in the evening peak.
@@ -424,7 +410,7 @@
 \end{frame}
 
 % ==== 22. Evacuation ========================================================
-\begin{frame}{Grid evacuation: pooling stations and the Rs 55,552 crore spine}
+\begin{frame}[t]{Grid evacuation: pooling stations and the Rs 55,552 crore spine}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
       \includegraphics[width=\textwidth]{figures/fig22_transmission_map.png}
@@ -441,7 +427,7 @@
 \end{frame}
 
 % ==== 23. Blackout ==========================================================
-\begin{frame}{Anatomy of the 13 May 2026 blackout (WRPC telemetry)}
+\begin{frame}[t]{Anatomy of the 13 May 2026 blackout (WRPC telemetry)}
   \begin{columns}[T]
     \begin{column}{0.6\textwidth}
       \includegraphics[width=\textwidth]{figures/fig23_telemetry.png}
@@ -465,7 +451,7 @@
 \end{frame}
 
 % ==== 24. Benchmarking ======================================================
-\begin{frame}{Mega-park benchmarking}
+\begin{frame}[t]{Mega-park benchmarking}
   \lead{The largest single-site hybrid complex in the world, and the only one without hydro or coal inertia next door.}
   {\scriptsize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.0cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{1.9cm}@{}}
@@ -482,7 +468,7 @@
 \end{frame}
 
 % ==== 25. Field questions ===================================================
-\begin{frame}{Field visit protocol: questions for domain experts}
+\begin{frame}[t]{Field visit protocol: questions for domain experts}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       \card{SpLightGray}{SpLightGray}{Chief geotechnical and civil engineer}
@@ -509,7 +495,7 @@
 \end{frame}
 
 % ==== 26. Crib sheet ========================================================
-\begin{frame}{On-site visual audit and pocket crib sheet}
+\begin{frame}[t]{On-site visual audit and pocket crib sheet}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
       {\footnotesize\textbf{Three things to look at from the car}}
@@ -533,7 +519,7 @@
 \end{frame}
 
 % ==== 27. Sources ===========================================================
-\begin{frame}{Sources}
+\begin{frame}[t]{Sources}
   {\scriptsize
   \begin{itemize}\setlength{\itemsep}{2pt}
     \item WRPC, grid disturbance report, Khavda complex, 13 May 2026: connected capacity by station, SVG MVAr, the 9,000 MW ceiling, the event sequence.

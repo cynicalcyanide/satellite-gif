@@ -12,8 +12,8 @@ the satellite work done by `satgif`.
 
 | Parameter | Value | Why |
 | --- | --- | --- |
-| Centre | 24.117° N, 69.350° E | From the analysis note (section "What the satellite imagery can show") |
-| Scene | 48 km east-west × 27 km north-south (`--radius-km 24x13.5`) | Covers the 726 km² park with margin; 16:9, so it fills a slide with no letterbox. **Check the first frame and shift the centre if the park is cut off.** |
+| Centre | 24.100° N, 69.465° E | Measured off the imagery. The analysis note's centre (24.117° N, 69.350° E) clipped the park: the eastern arrays ran off the right edge while ~15 km of empty salt flat sat unused in the west |
+| Scene | 54 km east-west × 30.4 km north-south (`--radius-km 27x15.1875`) | The built arrays span about 69.26–69.67° E by 23.99–24.21° N (42 × 24 km); this holds them with ~6 km of margin east-west and ~3 km north-south. Still exactly 16:9, so it fills a slide with no letterbox |
 | Sensor | Sentinel-2, 10 m | Panels and turbine shadows read clearly against white salt |
 | Interval | `3m` (quarterly) | 2020 Q1 to 2026 Q4: 28 frames |
 | Speed | `--fps 1`, `--hold 3` | One second per frame, 28 s loop, last frame held |
@@ -22,6 +22,7 @@ the satellite work done by `satgif`.
 | Width | 1600 px | 30 m per pixel; sharp enough for a projector, small enough to animate |
 | Scale bar | `--scale-bar` | 10 km bar, lower-left |
 | Rendering | `--contrast 1.2 --sharpen 0.6` | Styling only; re-renders from cache |
+| Built-up cut | `--built-threshold 160` | The arrays read ~165 in raw luminance against ~228 for bare ground and ~195 for white salt, so the tool's default of 110 sits below the panels and traces only dark rock. 160 covers the arrays with the least bleed; override with `BUILT_THRESHOLD=` |
 
 **Two things added to `satgif` for this deck:**
 

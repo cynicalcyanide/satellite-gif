@@ -59,47 +59,34 @@ GIF renders from the cache, so both cost one fetch.
 ## 2. The deck
 
 Beamer, 16:9, `beamercolorthemeXKDR` (your `.sty`, renamed so
-`\usecolortheme{XKDR}` finds it), `{X}KDR` logos on the title slide and the
-footer. Source: `khavda/deck/khavda.tex`. Build: `./khavda/build_deck.sh`
-(runs `pdflatex` twice).
+`\usecolortheme{XKDR}` finds it), `{X}KDR` logos on the title slide and in
+every frame-title bar. Source: `khavda/deck/khavda.tex`; charts from
+`khavda/deck/figures_a.py` and `figures_b.py`; TikZ diagrams in
+`khavda/deck/tikz/` (each testable standalone with `tikz/test_tikz.sh`).
+Build: `./khavda/build_deck.sh`.
 
-The GIF cannot play inside a PDF. The deck uses the `animate` package on the
-frame PNGs (plays in Acrobat and most desktop viewers at 1 fps, autoplay,
-loop) and a 2 × 3 grid of key quarters as the fallback on the next slide. The
-GIF and MP4 sit beside the PDF for presenting from a browser or Keynote.
+Twenty-six slides following the brief, plus sources: title; the two clocks;
+spatial scale; the wasteland lease; border rules and the 2023 reallocation;
+who builds; the two institutional models; the public-private bargain;
+resource physics; solar hardware; the 5.2 MW turbine; diurnal
+complementarity; sabkha soil engineering; the auxiliary ecosystem; the CMIE
+scoreboard; fiscal-year phasing; developer execution; the SPV structure;
+revenue tiers and battery arbitrage; the 1 GW project-finance model; the
+15-minute accounting clock; grid evacuation; the 13 May 2026 blackout;
+mega-park benchmarking; field questions; the pocket crib sheet.
 
-Slide by slide (numbers follow the skeleton):
+Images you supply drop into `khavda/deck/images/` under the names each grey
+placeholder prints: `title_satellite.png` (slide 1, full bleed),
+`sat_2023.png` and `sat_2026.png` (slide 3, left), `map_annotated.png`
+(slide 3, right), `robot.jpg` (slide 14). Quarterly frames from
+`make_frames.sh` add an animation slide after slide 3 automatically and
+stand in for the title image if none is supplied.
 
-| # | Slide | Visual | Status |
-| --- | --- | --- | --- |
-| 1 | Title | Latest satellite frame, full bleed | satellite |
-| 2 | Six years in 28 seconds | The animation; three numbers | satellite |
-| 2b | The same, six stills | 2 × 3 grid of key quarters | satellite |
-| 3 | Why here | Four facts; first frame (bare salt) | satellite |
-| 4 | The lease | Four-number callout | **built**, native LaTeX |
-| 5 | Who holds the land | Land by developer, 2020 vs 2026 bars; annotated frame | **built** chart; satellite with parcels once traced |
-| 6 | What the plant is made of | Anatomy chain | rebuilt in LaTeX, orange accent |
-| 7 | Building on salt | Five hazards and their fixes | text; photo strip is a placeholder until photos arrive |
-| 8 | The timeline | Milestone chart, rebuilt in theme colours; frame thumbnails | **built** chart; satellite |
-| 9 | CMIE capex | Stacked bar by developer, rebuilt | **built** |
-| 10 | How Adani builds | Subsidiaries diagram | rebuilt in LaTeX |
-| 11 | Everyone else | Tenant table | **built** |
-| 12 | Getting the power out | Evacuation chain, rebuilt; corridor schematic | **built** |
-| 13 | 13 May 2026 | Seconds timeline with the voltage values | **built** |
-| 14 | Batteries | GWh by date bars | **built**; battery-yard circle on the frame needs your eye |
-| 15 | Economics | Cost stack vs tariff | **built** |
-| 16 | Adani in four points | Text | **built** |
-| 17 | The plant in one page | Three columns; annotated frame | **built**; satellite |
-| 18 | Build-out curve | Built hectares per quarter vs milestones | generated from the built-area CSV after frames exist |
-| 19 | Sources | | **built** |
-
-Presenter notes from the skeleton go in `\note{}` on each frame; build with
-`notes=show` in the class options to get them beside the slides.
-
-Charts follow the package style note (short sentences, one finding per chart
-stated in the title, values on the marks, source line under each) with the
-palette swapped to the theme: grey for everything, `SpOrange` (#F27A69) for
-the thing the title is about.
+Charts follow one rule set: grey for everything, the theme orange
+(#F27A69) for the thing the title is about, a muted blue only where a
+second hue is unavoidable (wind, water, charging); values on the marks; a
+source line under each; stylised or reconstructed curves say so in their
+subtitle.
 
 ## 3. Order of work
 

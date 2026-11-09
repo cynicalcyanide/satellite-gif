@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Five charts for the Khavda deck (deck2), set A.
+"""Five charts for the Khavda deck, set A.
 
-    .venv/bin/python khavda/deck2/figures_a.py
+    .venv/bin/python khavda/deck/figures_a.py
 
 Style follows khavda/make_figures.py: grey for everything, one accent for
 the thing the title is about, values on the marks, a source line under
-each chart, short sentences. Output: khavda/deck2/figures/fig*.png.
+each chart, short sentences. Output: khavda/deck/figures/fig*.png.
 """
 import math
 import os
@@ -234,44 +234,41 @@ def fig12_diurnal():
     solar[dn] = 93 * 0.5 * (1 + np.cos(np.pi * (t[dn] - 16) / 2.5))
     wind = 72 - 42 * np.exp(-((t - 14.2) / 3.4) ** 2) \
         + 4 * np.cos((t - 1) / 24 * 2 * np.pi)
-    hybrid = solar + wind
     fig, ax = frame(
         'Solar carries the day, sea wind carries the night',
         'Stylised daily output profile, percent of installed capacity.',
         'Source: analysis note; AGEL CUF guidance (33% solar, 35%+ wind).',
         size=(11, 5.0))
-    ax.fill_between(t, 0, wind, color=BLUE, alpha=0.85, lw=0, label='Wind')
-    ax.fill_between(t, wind, hybrid, color=ACCENT, alpha=0.85, lw=0,
-                    label='Solar')
-    ax.plot(t, hybrid, color=INK, lw=2, label='Combined hybrid')
-    ax.text(13, 85, 'Solar plateau,\ntrackers + 1.35x DC overload',
-            ha='center', va='center', fontsize=10.5, color='white',
-            fontweight='bold')
-    ax.text(2.6, 33, 'Night wind,\n60 to 80%', ha='center', va='center',
-            fontsize=10.5, color='white', fontweight='bold')
-    ax.text(21.5, 33, 'Night wind,\n60 to 80%', ha='center', va='center',
-            fontsize=10.5, color='white', fontweight='bold')
-    # CUF annotation with a bracket over the day
-    ax.annotate('', xy=(0.15, 158), xytext=(23.85, 158),
-                arrowprops=dict(arrowstyle='|-|', color=INK2, lw=1,
-                                mutation_scale=4))
-    ax.text(12, 162, 'Combined hybrid CUF 38 to 42% against 33% solar alone',
-            ha='center', va='bottom', fontsize=10.5, color=INK,
-            fontweight='bold')
+    # not stacked: each technology in percent of its own capacity
+    ax.fill_between(t, 0, wind, color=BLUE, alpha=0.6, lw=0, zorder=1)
+    ax.fill_between(t, 0, solar, color=ACCENT, alpha=0.75, lw=0, zorder=2)
+    ax.text(13, 80, 'Solar plateau,\ntrackers + 1.35x DC overload',
+            ha='center', va='center', fontsize=10.5, color=INK,
+            fontweight='bold', zorder=3)
+    ax.text(2.8, 40, 'Night wind,\n60 to 80%', ha='center', va='center',
+            fontsize=10.5, color=INK, fontweight='bold', zorder=3)
+    ax.text(21.3, 40, 'Night wind,\n60 to 80%', ha='center', va='center',
+            fontsize=10.5, color=INK, fontweight='bold', zorder=3)
+    ax.text(23.8, 101, 'Shared substation: wind fills\nthe hours solar '
+            'cannot. Hybrid CUF\n38 to 42% against 33% solar alone.',
+            ha='right', va='top', fontsize=10, color=INK, zorder=3,
+            linespacing=1.25)
     ax.set_xlim(0, 24)
-    ax.set_ylim(0, 180)
+    ax.set_ylim(0, 103)
     ax.set_xticks(range(0, 25, 3))
     ax.set_xticklabels([f'{h:02d}:00' for h in range(0, 25, 3)],
                        fontsize=10)
-    ax.set_yticks([0, 25, 50, 75, 100, 125])
-    ax.set_yticklabels(['0', '25', '50', '75', '100', '125%'], fontsize=10)
+    ax.set_yticks([0, 25, 50, 75, 100])
+    ax.set_yticklabels(['0', '25', '50', '75', '100%'], fontsize=10)
+    ax.set_ylabel("percent of each technology's own capacity", fontsize=10,
+                  color=INK2, labelpad=8)
     ax.spines['left'].set_visible(False)
     ax.tick_params(axis='y', length=0)
     ax.tick_params(axis='x', length=3, color=GREY)
-    ax.legend([Patch(color=ACCENT, alpha=0.85), Patch(color=BLUE, alpha=0.85)],
+    ax.legend([Patch(color=ACCENT, alpha=0.75), Patch(color=BLUE, alpha=0.6)],
               ['Solar', 'Wind'], loc='upper left', frameon=False,
-              fontsize=10, bbox_to_anchor=(0.0, 0.84))
-    fig.subplots_adjust(top=0.84, bottom=0.11, left=0.05, right=0.98)
+              fontsize=10, bbox_to_anchor=(0.0, 1.0))
+    fig.subplots_adjust(top=0.84, bottom=0.11, left=0.07, right=0.98)
     save(fig, 'fig12_diurnal.png')
 
 

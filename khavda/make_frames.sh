@@ -22,6 +22,11 @@
 #
 # The second run re-renders from the cache, so the two GIFs cost one fetch.
 #
+# Series starts at Q1 2022, not Q1 2020: on this scene the first eight quarters
+# are bare salt with no visible construction, so they read as a dead opening.
+# The 2020-21 frames are still in the cache -- set --start 2020-01 to get them
+# back without refetching.
+#
 # Then: .venv/bin/python khavda/make_figures.py && ./khavda/build_deck.sh
 #
 # Scene: 54 x 30.4 km (16:9) centred on 24.100 N, 69.465 E. The analysis note's
@@ -58,7 +63,7 @@ if [ -s "$ROOT/khavda/parcels.geojson" ]; then
 fi
 
 COMMON="--lat 24.100 --lon 69.465 --radius-km 27x15.1875 \
-    --start 2020-01 --end 2026-10 --interval 3m \
+    --start 2022-01 --end 2026-10 --interval 3m \
     --sat sentinel2 --max-cloud 30 --width 1600 \
     --fps 1 --hold 3 \
     --scale-bar --contrast 1.2 --sharpen 0.6 \

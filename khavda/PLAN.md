@@ -36,8 +36,10 @@ the satellite work done by `satgif`.
    (in geojson.io or QGIS) is outlined on every frame, labelled with its name
    and its area in hectares or km², computed from the coordinates. This is how
    the developer parcels (Adani, NTPC, Sarjan, GSECL, GIPCL, ex-SECI) go on
-   slide 5 once their boundaries are traced. `khavda/parcels.geojson` is a
-   template with the park outline to replace.
+   slide 5 once their boundaries are traced. `khavda/parcels.geojson.template`
+   holds a placeholder rectangle, deliberately not named `parcels.geojson` so
+   that an unsurveyed outline is never drawn: copy it across and replace the
+   coordinates with traced ones to switch the overlay on.
 
 Both are overlays: they do not touch the cache, so you can iterate on them in
 seconds once the frames are downloaded.
@@ -52,8 +54,8 @@ cannot fetch imagery. Everything is wired so that one command does it:
 It writes two GIFs (with MP4s beside them) into `khavda/deck/frames/`:
 `khavda_plain.gif`, unannotated (imagery, legend, scale bar only), and
 `khavda.gif`, annotated (built-up outline with hectares, plus any polygons in
-`parcels.geojson`). It also writes one PNG per annotated frame and
-`khavda_built_area.csv`; the deck picks them up on the next build. The second
+`parcels.geojson` if that file has been created). It also writes one PNG per
+annotated frame and `khavda_built_area.csv`; the deck picks them up on the next build. The second
 GIF renders from the cache, so both cost one fetch.
 
 ## 2. The deck

@@ -9,6 +9,12 @@
 #   khavda_plain.gif / .mp4         unannotated: imagery, legend, scale bar
 #   khavda.gif / .mp4               annotated: built-up outline + hectares,
 #                                   and the polygons in khavda/parcels.geojson
+#                                   if that file exists (it ships only as
+#                                   parcels.geojson.template: the placeholder
+#                                   rectangle is NOT a surveyed boundary, so
+#                                   copy it to parcels.geojson and replace the
+#                                   coordinates with traced ones before it is
+#                                   drawn)
 #   khavda_NN.png                   one annotated PNG per frame, for the deck
 #   khavda_frames.csv               index, label, dates per frame
 #   khavda_built_area.csv           measured built-up hectares per quarter
@@ -18,20 +24,40 @@
 #
 # Then: .venv/bin/python khavda/make_figures.py && ./khavda/build_deck.sh
 #
-# Scene: 48 x 27 km (16:9) centred on 24.117 N, 69.350 E, the centre the
-# analysis note gives. CHECK FRAME 00: if the park is cut off, move --lat/--lon
-# or widen --radius-km here (one refetch) and rerun.
+# Scene: 54 x 30.4 km (16:9) centred on 24.100 N, 69.465 E. The analysis note's
+# centre (24.117 N, 69.350 E) with a 48 x 27 km scene was measured against the
+# imagery and clipped the park: the eastern arrays near 69.60-69.67 E ran off
+# the right edge while ~15 km of empty salt flat sat unused in the west. The
+# built arrays span about 69.26-69.67 E by 23.99-24.21 N (42 x 24 km), so this
+# scene holds them with ~6 km of margin east-west and ~3 km north-south.
+# CHECK FRAME 00: if the park is cut off, move --lat/--lon or widen
+# --radius-km here (one refetch) and rerun; keep the 16:9 ratio.
 set -e
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/khavda/deck/frames"
 mkdir -p "$OUT"
 
+# Luminance cut for --built-area, measured against this scene rather than left
+# at the tool's default of 110. On these frames the arrays read about 165 in raw
+# luminance, bare ground about 228 and white salt about 195, so 110 sat below
+# the panels entirely and traced only dark rock (2,768 ha of specks). Sweeping
+# 140/150/155/160/165/175/190 over the cached frames: 140 leaves whole array
+# blocks untraced, 175 and above floods the salt flat and the rocky ground, and
+# 160 covers the arrays with the least bleed. It is a threshold, not a
+# classification: some wet salt flat in the west and dark rock in the north-east
+# are still caught, so treat the hectares as an upper bound. Override per run
+# with: BUILT_THRESHOLD=165 ./khavda/make_frames.sh
+BUILT_THRESHOLD="${BUILT_THRESHOLD:-160}"
+
+# Drawn only if real parcel boundaries have been traced into
+# khavda/parcels.geojson. Absent (the default), the annotated GIF carries only
+# the measured built-up polygons, nothing hand-drawn.
 POLY=""
 if [ -s "$ROOT/khavda/parcels.geojson" ]; then
     POLY="--polygons $ROOT/khavda/parcels.geojson"
 fi
 
-COMMON="--lat 24.117 --lon 69.350 --radius-km 24x13.5 \
+COMMON="--lat 24.100 --lon 69.465 --radius-km 27x15.1875 \
     --start 2020-01 --end 2026-10 --interval 3m \
     --sat sentinel2 --max-cloud 30 --width 1600 \
     --fps 1 --hold 3 \
@@ -46,7 +72,7 @@ echo "== 1/2 unannotated GIF (fetches frames; later runs use the cache)"
 echo "== 2/2 annotated GIF: built-up area outline and hectares, parcels"
 "$ROOT/satgif" generate $COMMON \
     --title "KHAVDA RENEWABLE ENERGY PARK, KUTCH" \
-    --built-area $POLY \
+    --built-area --built-threshold "$BUILT_THRESHOLD" $POLY \
     --frames-dir "$OUT" \
     --out "$OUT/khavda.gif" "$@"
 

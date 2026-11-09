@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "_comment": "TEMPLATE. Replace with the real parcel outlines traced in geojson.io or QGIS (WGS84 lon/lat). Each feature's 'name' is the caption; its area in hectares is computed from the coordinates and printed under the name. Optional 'color': '#rrggbb'. Delete features you do not want drawn. The single feature below is a placeholder rectangle of roughly the park's 726 km2 around the note's centre, NOT a surveyed boundary.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"name": "Park outline (placeholder)", "color": "#F27A69"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [69.17, 24.00],
+          [69.53, 24.00],
+          [69.53, 24.235],
+          [69.17, 24.235],
+          [69.17, 24.00]
+        ]]
+      }
+    }
+  ]
+}

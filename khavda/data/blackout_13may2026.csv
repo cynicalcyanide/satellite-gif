@@ -1,0 +1,10 @@
+time,event,value
+14:00:00,Khavda complex generating at its ceiling,8963 MW
+14:02:39,Phase-to-ground fault on 400 kV Indore-Asoj line; inverters ride through,
+14:03:46,0.45 Hz voltage oscillation develops across the complex,20 kV peak-to-peak at 400 kV
+14:05:40,First of three voltage dips below the ride-through threshold,
+14:09:31,Voltage sags to 680 kV for 5 seconds; reactive power ramps 145 to 900 MVAr,680 kV
+14:09:46,First 765 kV line trips (KPS3-KPS2 line 2),
+14:09:51,Voltage peaks,894 kV
+14:09:51,About 2931 MW of generation trips on over-voltage protection,2931 MW
+14:10:02,17 EHV lines tripped; whole complex blacked out; frequency falls,49.39 Hz

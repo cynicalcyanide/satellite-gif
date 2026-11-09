@@ -3,3 +3,6 @@ satgif_cache/
 *.gif
 *.mp4
 __pycache__/
+khavda/deck/frames/
+khavda/deck/*.log
+khavda/deck/khavda_notes.*

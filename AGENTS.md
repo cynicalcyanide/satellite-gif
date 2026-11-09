@@ -22,7 +22,9 @@ It has two equivalent interfaces:
 Repo layout: `satgif.py` (everything), `satgif` (launcher), `README.md`
 (manual), `requirements.txt` (`earthengine-api`, `pillow`, `requests`),
 `satgif_cache/` (gitignored frame cache), outputs `*.gif`/`*.mp4`
-(gitignored).
+(gitignored). `khavda/` is a worked example: a Beamer deck built around a
+quarterly series of the Khavda park (`khavda/PLAN.md` explains it; its
+scripts are the pattern for any deck-plus-satgif job).
 
 ## Setup, as an agent
 
@@ -82,12 +84,32 @@ Semantics an agent gets wrong if it only skims the flag table:
   across frames (contrast pivots on grey 128, never the frame mean —
   keep it that way or you reintroduce flicker). Not in the cache hash.
   They touch only the imagery; legend and scale bar are drawn after.
+- `--built-area` is a luminance threshold (`--built-threshold`, default
+  110) with three persistence rules: dark now, dark in the next and the
+  last frame, not dark in the first frame. It is computed on the raw
+  cached frames, before contrast. The first frame always reads 0 ha; the
+  last frame's mask is the envelope. Start the series on a dry frame.
+  Output: an orange outline per frame, a legend line, and
+  `<out stem>_built_area.csv` (hectares, km², MW at 2 ha/MW). Tell the
+  user it is a threshold, not a classification, and to eyeball the last
+  frame.
+- `--polygons FILE.geojson` draws every polygon with its `name` and its
+  area computed from the coordinates (local-metric shoelace; holes
+  subtracted). Pixel placement assumes the frame is in Web Mercator,
+  which is what the tool requests. If a user wants parcels outlined,
+  they must supply the GeoJSON; there is no public boundary dataset
+  the tool can fetch.
+- `--frames-dir DIR` saves each rendered frame as `<stem>_NN.png` plus
+  `<stem>_frames.csv`; a LaTeX deck uses them with the `animate` package.
+- Frames are requested in `RENDER_CRS` (EPSG:3857) so the pixel aspect
+  equals the km aspect. The CRS is in the cache key.
 
 **Cost model / cache.** Each frame is one GEE query plus one image
 download, cached in `--cache-dir` keyed on a hash of
-`(sat, lat, lon, radius, dates, season, max_cloud, width)`. Changing only
-`--fps`, `--hold`, `--title`, `--scale-bar`, `--contrast`,
-`--sharpen`, or `--out` re-renders from cache (seconds);
+`(sat, lat, lon, radius, dates, season, max_cloud, width, crs)`. Changing only
+`--fps`, `--hold`, `--title`, `--scale-bar`, `--contrast`, `--sharpen`,
+`--built-area`, `--built-threshold`, `--polygons`, `--frames-dir`, or
+`--out` re-renders from cache (seconds);
 changing anything in the hash refetches those frames (tens of seconds to
 minutes). Batch your parameter decisions before fetching; iterate styling
 freely afterwards. Never commit the cache.
@@ -140,7 +162,11 @@ the first and last frames visually.
   If you change what a parameter *means* (not just add one), old cache
   entries become silently wrong — add the changed parameter to the hash
   string in `make_timelapse` so stale entries miss.
-- **Testing**: there is no test suite; verification is live. Cheapest
+- **Testing**: there is no test suite; verification is live. The
+  overlay path (built area, polygons, scale bar, frames-dir) can be
+  exercised offline by pre-populating `--cache-dir` with synthetic PNGs
+  under the keys `make_timelapse` computes and stubbing `ee.Initialize`
+  and `_region`; that is how the overlays were verified. Cheapest
   real check: 2–3 frames, small width, one sensor, `--no-mp4`:
   `generate --lat 23.4945 --lon 72.0072 --start 2021 --end 2023 --width 600 --no-mp4 --out /tmp/t.gif`
   then verify frame count/size as above. Test every sensor you touched.

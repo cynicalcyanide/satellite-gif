@@ -174,15 +174,25 @@ Full help: `./satgif generate --help`
 | `--scale-bar` | off | draw a distance scale bar (0 / mid / end labels, round 1-2-5 length ≈ ⅕ of the scene width) in the lower-left corner |
 | `--contrast` | `1.0` | contrast multiplier for the imagery around mid-grey: `1.2`–`1.4` punchier, below `1` flatter. Same on every frame, so no flicker; the legend is untouched |
 | `--sharpen` | `0` | unsharp-mask strength: `0.5`–`1.5` typical; above ~`1.5` you get halos on sharp edges. Sharpening can't add detail finer than the sensor's resolution — raise `--width` first |
+| `--built-area` | off | outline the built-up area in every frame (orange) and print its hectares in the legend and in `<out>_built_area.csv`. For dark structures on bright ground: solar parks on sand or salt, industrial sheds on scrub |
+| `--built-threshold` | `110` | luminance (0–255) below which a pixel counts as built for `--built-area`. Raise it if panels are missed, lower it if bare ground is caught |
+| `--polygons FILE.geojson` | off | outline every polygon in the file on every frame, captioned with its `name` property and its area in hectares (computed from the coordinates). Draw the polygons in [geojson.io](https://geojson.io) or QGIS |
+| `--frames-dir DIR` | off | also save every rendered frame as a PNG (`<stem>_NN.png`) with a `<stem>_frames.csv` index — for slide decks (LaTeX `animate`) or further analysis |
 | `--out` | `timelapse.gif` | output GIF path; the MP4 is written beside it |
 | `--no-mp4` | off | skip the MP4 even when ffmpeg is installed |
 | `--project` | `~/.satgif` / env | GEE project id override |
 | `--cache-dir` | `satgif_cache` | where downloaded frames are cached |
 
 **Iterating is cheap.** Downloaded frames are cached by parameter hash, so
-rerunning with different `--fps`, `--hold`, `--title`, `--scale-bar`, `--contrast`, or `--sharpen` is instant. Changing
+rerunning with different `--fps`, `--hold`, `--title`, `--scale-bar`, `--contrast`,
+`--sharpen`, `--built-area`, `--polygons`, or `--frames-dir` is instant. Changing
 location, dates, sensor, season, or width re-fetches, because those change
 the imagery itself.
+
+**Frames are rendered in Web Mercator** (EPSG:3857), so a square kilometre is a
+square on screen: the frame's pixel aspect equals the scene's km aspect and the
+scale bar is right in both directions. (Earth Engine's default thumbnail
+projection would squash the north-south axis by cos(latitude).)
 
 ---
 
@@ -216,6 +226,34 @@ with zero usable scenes is skipped with a warning that names the fix.
 ```
 
 ---
+
+## Measuring and annotating
+
+```bash
+# How much of a solar park is built, quarter by quarter, with the outline drawn
+./satgif generate --lat 24.117 --lon 69.350 --radius-km 24x13.5 \
+    --start 2020-01 --end 2026-10 --interval 3m --fps 1 \
+    --scale-bar --built-area --polygons parcels.geojson \
+    --frames-dir frames --out khavda.gif
+```
+
+`--built-area` classifies dark pixels (panels, turbine pads) against bright
+ground. A pixel counts as built in a frame only if it is dark in that frame,
+still dark in the next frame and in the last one (construction is permanent;
+floods and cloud shadow are not), and was not dark in the first frame
+(permanent water, roads and rock are excluded, so start the series on a dry
+frame). The hectares go in the legend and in `khavda_built_area.csv`, with a
+rough MW column at 2 ha per MW. It is a luminance threshold, not a land-cover
+classification: check the outline on the last frame and tune
+`--built-threshold`.
+
+`--polygons` takes a GeoJSON `FeatureCollection` (or a single Feature or
+Polygon). Each feature's `name` is the caption; the area under it is computed
+from the coordinates. An optional `color` property (`#rrggbb`) overrides the
+orange.
+
+A worked example that uses all of this, with a Beamer deck around it, is in
+[`khavda/`](khavda/PLAN.md).
 
 ## Troubleshooting
 

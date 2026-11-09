@@ -122,14 +122,97 @@ def _parse_radius(radius_km):
     return float(radius_km), float(radius_km)
 
 
-def _region(lat, lon, radius_km):
-    import ee
+def _bounds(lat, lon, radius_km):
+    """Scene bounding box as (lon_min, lat_min, lon_max, lat_max)."""
     import math
     rx, ry = _parse_radius(radius_km)
     d_lat = ry / KM_PER_DEG_LAT
     d_lon = rx / (111.320 * math.cos(math.radians(lat)))
-    coords = [lon - d_lon, lat - d_lat, lon + d_lon, lat + d_lat]
-    return ee.Geometry.Rectangle(coords)
+    return lon - d_lon, lat - d_lat, lon + d_lon, lat + d_lat
+
+
+def _region(lat, lon, radius_km):
+    import ee
+    return ee.Geometry.Rectangle(list(_bounds(lat, lon, radius_km)))
+
+
+# Frames are rendered in Web Mercator (EPSG:3857), which is conformal: a
+# square kilometre is a square on screen, so the frame's pixel aspect equals
+# the scene's km aspect and one scale bar is right in both axes. (The default
+# EPSG:4326 thumbnail squashes the north-south axis by cos(latitude).)
+RENDER_CRS = 'EPSG:3857'
+
+
+def _merc_y(lat_deg):
+    import math
+    return math.log(math.tan(math.pi / 4 + math.radians(lat_deg) / 2))
+
+
+def _lonlat_to_px(lon, lat, bounds, size):
+    """Map a lon/lat to pixel coordinates in a frame rendered in RENDER_CRS."""
+    lon0, lat0, lon1, lat1 = bounds
+    w, h = size
+    x = (lon - lon0) / (lon1 - lon0) * w
+    y0, y1 = _merc_y(lat0), _merc_y(lat1)
+    y = (y1 - _merc_y(lat)) / (y1 - y0) * h
+    return x, y
+
+
+def _ring_area_km2(ring, lat_ref):
+    """Planar shoelace area of a lon/lat ring on a local metric grid (good to
+    well under 0.1% for scenes a few tens of km across)."""
+    import math
+    kx = 111.320 * math.cos(math.radians(lat_ref))
+    ky = KM_PER_DEG_LAT
+    pts = [(lon * kx, lat * ky) for lon, lat in ring]
+    a = 0.0
+    for (x0, y0), (x1, y1) in zip(pts, pts[1:] + pts[:1]):
+        a += x0 * y1 - x1 * y0
+    return abs(a) / 2
+
+
+def _fmt_area(km2):
+    ha = km2 * 100
+    if ha < 1:
+        return f'{ha * 10000:,.0f} m²'
+    if ha < 10000:
+        return f'{ha:,.0f} ha'
+    return f'{ha:,.0f} ha  ({km2:,.0f} km²)'
+
+
+def _load_polygons(path):
+    """Read a GeoJSON file into [(label, outer_ring, area_km2, color)].
+
+    Accepts a FeatureCollection, a Feature, or a bare Polygon/MultiPolygon.
+    Feature properties used: `name` (or `label`) for the caption and an
+    optional `color` ('#rrggbb'). Holes are subtracted from the area but not
+    drawn. Each part of a MultiPolygon is drawn and labelled separately.
+    """
+    import json
+    with open(path) as fh:
+        gj = json.load(fh)
+    feats = (gj['features'] if gj.get('type') == 'FeatureCollection'
+             else [gj] if gj.get('type') == 'Feature'
+             else [{'type': 'Feature', 'geometry': gj, 'properties': {}}])
+    out = []
+    for f in feats:
+        geom = f.get('geometry') or {}
+        props = f.get('properties') or {}
+        label = props.get('name') or props.get('label') or ''
+        color = props.get('color')
+        polys = ([geom['coordinates']] if geom.get('type') == 'Polygon'
+                 else geom['coordinates'] if geom.get('type') == 'MultiPolygon'
+                 else [])
+        for rings in polys:
+            if not rings:
+                continue
+            outer = [tuple(p[:2]) for p in rings[0]]
+            lat_ref = sum(p[1] for p in outer) / len(outer)
+            area = _ring_area_km2(outer, lat_ref)
+            for hole in rings[1:]:
+                area -= _ring_area_km2([tuple(p[:2]) for p in hole], lat_ref)
+            out.append((label, outer, area, color))
+    return out
 
 
 def _parse_ym(s, default_month):
@@ -185,8 +268,15 @@ def _fonts(scale):
     return f, f, f
 
 
-def _draw_panel(img, label, i, n, title, subtitle, attribution):
-    """Legend panel in the lower-right corner; sizes scale with frame width."""
+ACCENT = (242, 122, 105)   # outline/label colour for polygons and built area
+
+
+def _draw_panel(img, label, i, n, title, subtitle, attribution, extra=None):
+    """Legend panel in the lower-right corner; sizes scale with frame width.
+
+    `extra`, if given, is one more line (e.g. the built-up area) drawn in the
+    accent colour under the scene-size line.
+    """
     from PIL import Image, ImageDraw
     s = img.width / 2400
     f_label, f_date, f_small = _fonts(s)
@@ -194,7 +284,7 @@ def _draw_panel(img, label, i, n, title, subtitle, attribution):
     d = ImageDraw.Draw(overlay)
     PAD = int(28 * s)
     W = int(600 * s)
-    H = int(296 * s)
+    H = int(296 * s) + (int(34 * s) if extra else 0)
     PX, PY = img.width - W - int(40 * s), img.height - H - int(40 * s)
     y = PY + PAD
     d.rounded_rectangle([PX, PY, PX + W, PY + H], radius=int(22 * s),
@@ -225,7 +315,98 @@ def _draw_panel(img, label, i, n, title, subtitle, attribution):
     y += int(30 * s)
     d.text((PX + PAD, y), subtitle, font=f_small, fill=(190, 196, 205, 255))
     y += int(34 * s)
+    if extra:
+        d.text((PX + PAD, y), extra, font=f_small, fill=ACCENT + (255,))
+        y += int(34 * s)
     d.text((PX + PAD, y), attribution, font=f_small, fill=(140, 146, 155, 255))
+    return Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
+
+
+def _dark_mask(img, threshold):
+    """Mode-'L' mask (255 = dark) of pixels whose luminance is below
+    `threshold`, opened with a 3x3 min/max filter to drop single-pixel
+    noise. Computed on the raw frame, before contrast/sharpen."""
+    from PIL import ImageFilter
+    m = img.convert('L').point(lambda v: 255 if v < threshold else 0)
+    return m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))
+
+
+def _built_masks(frames, threshold):
+    """Built-up mask per frame: dark now, still dark in the next frame and in
+    the final frame, and not dark in the first frame.
+
+    Panels and turbine pads are dark against bright ground, and construction
+    is permanent, so a built pixel stays dark in every later frame. Requiring
+    darkness in the next frame and the last one drops transient darkness
+    that lasts one frame (monsoon flooding, cloud shadow). Dropping anything
+    dark in the first frame removes permanent water, roads and rock that
+    were there before building started, so start the series on a dry frame.
+    The first frame's own built area is zero by construction, and the last
+    frame's mask is the envelope everything else is measured within.
+    """
+    from PIL import ImageChops
+    dark = [_dark_mask(f, threshold) for f in frames]
+    base_inv = ImageChops.invert(dark[0])
+    final = dark[-1]
+    out = []
+    for i, m in enumerate(dark):
+        nxt = dark[min(i + 1, len(dark) - 1)]
+        m = ImageChops.multiply(ImageChops.multiply(m, nxt), final)
+        out.append(ImageChops.multiply(m, base_inv))
+    return out
+
+
+def _mask_area_km2(mask, km_per_px):
+    hist = mask.histogram()
+    return hist[255] * km_per_px * km_per_px
+
+
+def _draw_mask_outline(img, mask, color=ACCENT):
+    """Trace the boundary of a mask onto the frame in `color`, with a thin
+    dark halo so the line reads on white salt and on dark panels alike."""
+    from PIL import Image, ImageChops, ImageFilter
+    s = img.width / 2400
+    k = max(3, int(7 * s) | 1)      # odd kernel; ~5 px at 1600 px wide
+    edge = ImageChops.subtract(mask, mask.filter(ImageFilter.MinFilter(k)))
+    halo = edge.filter(ImageFilter.MaxFilter(3))
+    out = img.convert('RGBA')
+    out.paste(Image.new('RGBA', img.size, (0, 0, 0, 160)), mask=halo)
+    out.paste(Image.new('RGBA', img.size, color + (255,)), mask=edge)
+    return out.convert('RGB')
+
+
+def _draw_polygons(img, polys, bounds):
+    """Outline each (label, ring, area_km2, color) polygon and caption it with
+    its name and area at the ring's centroid."""
+    from PIL import Image, ImageDraw
+    s = img.width / 2400
+    f_txt, _, f_small = _fonts(s)
+    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    lw = max(2, int(5 * s))
+    for label, ring, area, color in polys:
+        if color:
+            c = tuple(int(color.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4))
+        else:
+            c = ACCENT
+        pts = [_lonlat_to_px(lon, lat, bounds, img.size) for lon, lat in ring]
+        d.line(pts + pts[:1], fill=(0, 0, 0, 150), width=lw + 2)
+        d.line(pts + pts[:1], fill=c + (255,), width=lw)
+        cx = sum(p[0] for p in pts) / len(pts)
+        cy = sum(p[1] for p in pts) / len(pts)
+        lines = [t for t in (label, _fmt_area(area)) if t]
+        tw = max(d.textlength(t, font=f_txt) for t in lines)
+        th = int(32 * s) * len(lines)
+        pad = int(12 * s)
+        box = [cx - tw / 2 - pad, cy - th / 2 - pad,
+               cx + tw / 2 + pad, cy + th / 2 + pad]
+        d.rounded_rectangle(box, radius=int(10 * s), fill=(12, 14, 18, 190))
+        y = cy - th / 2
+        for j, t in enumerate(lines):
+            fill = (255, 255, 255, 255) if j == 0 else c + (255,)
+            d.text((cx - d.textlength(t, font=f_txt) / 2, y), t,
+                   font=f_txt, fill=fill)
+            y += int(32 * s)
     return Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
 
 
@@ -340,7 +521,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                    interval='1y', season=None, sat='sentinel2',
                    width=1200, fps=2.0, hold=2.0, max_cloud=20,
                    title=None, scale_bar=False, contrast=1.0, sharpen=0.0,
-                   out='timelapse.gif', mp4=True,
+                   built_area=False, built_threshold=110, polygons=None,
+                   frames_dir=None, out='timelapse.gif', mp4=True,
                    project=None, cache_dir='satgif_cache', verbose=True):
     """Build a satellite timelapse GIF (and, if ffmpeg is present, an MP4).
 
@@ -373,6 +555,20 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
             1.2-1.4 = punchier, <1 = flatter. Imagery only, not the legend.
         sharpen: Unsharp-mask strength; 0 = off, 0.5-1.5 typical. Above
             ~1.5, halos appear around sharp edges such as panel rows.
+        built_area: Measure and outline the built-up area in every frame
+            (pixels darker than `built_threshold` that are also dark in the
+            last frame and were not dark in the first). The hectares go in
+            the legend and in `<out stem>_built_area.csv`. Meant for dark
+            structures on bright ground (solar parks on sand or salt).
+        built_threshold: Luminance (0-255) below which a pixel counts as
+            dark for `built_area`. Raise it if panels are missed; lower it
+            if bare ground is caught.
+        polygons: Path to a GeoJSON file. Every polygon in it is outlined on
+            every frame and captioned with its `name` property and its area
+            computed from the coordinates (hectares, or km² when large).
+        frames_dir: If given, every rendered frame is also saved there as
+            `<out stem>_NN.png`, with a `<out stem>_frames.csv` index — for
+            slide decks (LaTeX `animate`) or further analysis.
         out: Output GIF path. The MP4 is written beside it (same stem).
         mp4: Set False to skip the MP4 even when ffmpeg is available.
         project: Earth Engine Cloud project id. Falls back to the
@@ -419,6 +615,8 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         end = str(date.today().year - 1)
     spec = _frames_spec(start, end, interval)
     region = _region(lat, lon, radius_km)
+    bounds = _bounds(lat, lon, radius_km)
+    polys = _load_polygons(polygons) if polygons else []
     if title is None:
         title = f'{abs(lat):.4f}° {"N" if lat >= 0 else "S"}, ' \
                 f'{abs(lon):.4f}° {"E" if lon >= 0 else "W"}'
@@ -429,13 +627,16 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
 
     frames = []
     labels = []
+    spans = []
     for label, t0, t1 in spec:
         key = hashlib.md5(f'{sat}|{lat}|{lon}|{radius_km}|{t0}|{t1}|'
-                          f'{season}|{max_cloud}|{width}'.encode()).hexdigest()
+                          f'{season}|{max_cloud}|{width}|{RENDER_CRS}'
+                          .encode()).hexdigest()
         cached = os.path.join(cache_dir, key + '.png')
         if os.path.exists(cached):
             frames.append(Image.open(cached).convert('RGB'))
             labels.append(label)
+            spans.append((t0, t1))
             if verbose:
                 print(f'  {label}: cached')
             continue
@@ -446,13 +647,14 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                   f'(try higher --max-cloud or no --season); frame skipped')
             continue
         url = vis.getThumbURL({'region': region, 'dimensions': width,
-                               'format': 'png'})
+                               'crs': RENDER_CRS, 'format': 'png'})
         r = requests.get(url, timeout=180)
         r.raise_for_status()
         with open(cached, 'wb') as fh:
             fh.write(r.content)
         frames.append(Image.open(cached).convert('RGB'))
         labels.append(label)
+        spans.append((t0, t1))
         if verbose:
             print(f'  {label}: {n_scenes} scenes')
 
@@ -460,10 +662,32 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
         raise SystemExit('fewer than 2 frames produced — nothing to animate')
 
     n = len(frames)
+    stem = os.path.splitext(out)[0]
+    km_per_px = 2 * rx / frames[0].width
+
+    masks = extras = None
+    if built_area:
+        masks = _built_masks(frames, built_threshold)
+        areas = [_mask_area_km2(m, km_per_px) for m in masks]
+        extras = [f'Built-up: {_fmt_area(a)}' for a in areas]
+        csv_path = stem + '_built_area.csv'
+        with open(csv_path, 'w') as fh:
+            fh.write('label,start,end,hectares,km2,est_mw_at_2ha_per_mw\n')
+            for lbl, (t0, t1), a in zip(labels, spans, areas):
+                fh.write(f'{lbl},{t0},{t1},{a * 100:.0f},{a:.2f},'
+                         f'{a * 100 / 2:.0f}\n')
+        if verbose:
+            print(f'wrote {csv_path}')
+
     if contrast != 1.0 or sharpen > 0:
         frames = [_enhance(f, contrast, sharpen) for f in frames]
+    if masks:
+        frames = [_draw_mask_outline(f, m) for f, m in zip(frames, masks)]
+    if polys:
+        frames = [_draw_polygons(f, polys, bounds) for f in frames]
     rendered = [_draw_panel(f, lbl, i, n, title, subtitle,
-                            sensor['attribution'])
+                            sensor['attribution'],
+                            extras[i] if extras else None)
                 for i, (f, lbl) in enumerate(zip(frames, labels))]
     if scale_bar:
         rendered = [_draw_scale_bar(f, 2 * rx) for f in rendered]
@@ -475,6 +699,19 @@ def make_timelapse(lat, lon, radius_km=2.0, start='2016', end=None,
                 duration=durations, loop=0)
     if verbose:
         print(f'wrote {out} ({n} frames)')
+
+    if frames_dir:
+        os.makedirs(frames_dir, exist_ok=True)
+        base = os.path.basename(stem)
+        with open(os.path.join(frames_dir, base + '_frames.csv'), 'w') as fh:
+            fh.write('index,file,label,start,end\n')
+            for i, (f, lbl, (t0, t1)) in enumerate(zip(rendered, labels,
+                                                       spans)):
+                name = f'{base}_{i:02d}.png'
+                f.save(os.path.join(frames_dir, name))
+                fh.write(f'{i},{name},{lbl},{t0},{t1}\n')
+        if verbose:
+            print(f'wrote {n} frames to {frames_dir}/')
 
     if mp4 and shutil.which('ffmpeg'):
         mp4_path = os.path.splitext(out)[0] + '.mp4'
@@ -547,6 +784,9 @@ def _cmd_generate(args):
                    fps=args.fps, hold=args.hold, max_cloud=args.max_cloud,
                    title=args.title, scale_bar=args.scale_bar,
                    contrast=args.contrast, sharpen=args.sharpen,
+                   built_area=args.built_area,
+                   built_threshold=args.built_threshold,
+                   polygons=args.polygons, frames_dir=args.frames_dir,
                    out=args.out, mp4=not args.no_mp4,
                    project=args.project, cache_dir=args.cache_dir)
 
@@ -596,6 +836,19 @@ def main(argv=None):
     g.add_argument('--sharpen', type=float, default=0.0,
                    help='unsharp-mask strength; 0 = off, 0.5-1.5 typical '
                         '(default: 0)')
+    g.add_argument('--built-area', action='store_true',
+                   help='outline the built-up area in each frame and put its '
+                        'hectares in the legend and <out>_built_area.csv '
+                        '(dark structures on bright ground, e.g. solar parks)')
+    g.add_argument('--built-threshold', type=int, default=110,
+                   metavar='0-255',
+                   help='luminance below which a pixel counts as built for '
+                        '--built-area (default 110)')
+    g.add_argument('--polygons', default=None, metavar='FILE.geojson',
+                   help='outline every polygon in this GeoJSON on each frame, '
+                        "captioned with its 'name' and its area")
+    g.add_argument('--frames-dir', default=None, metavar='DIR',
+                   help='also save every rendered frame as a PNG here')
     g.add_argument('--out', default='timelapse.gif',
                    help='output GIF path; MP4 lands beside it')
     g.add_argument('--no-mp4', action='store_true',

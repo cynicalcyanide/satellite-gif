@@ -1,0 +1,10 @@
+project_id,spv,phase,cost_rs_crore,status,main_items
+177758:781,Power Grid Corp,IV-E3,334,Completed,765/400 kV ICT-4 at KPS3 (1500 MVA)
+703654:1,Khavda IVA Power Transmission (Adani Energy Solutions),IV-A,4091,Under implementation,"4500 MVA at KPS3; 300 MVAr STATCOM; 765 kV KPS3-Lakadia 404 ckm; KPS1-Bhuj 2nd line 217 ckm"
+699839:1,Powergrid Khavda IV-E2,IV-E2,697,Under implementation,6000 MVA added at KPS2
+703691:1,Powergrid South Olpad Transmission,IV-B,4766,Under implementation,"4000 MVA GIS at South Olpad; 765 kV Ahmedabad-South Olpad 455 ckm; Vadodara-South Olpad 249 ckm"
+703653:1,Khavda IV C Power Transmission,IV-C,5390,Under implementation,"7000 MVA Boisar-II GIS; 765 kV South Olpad-Boisar-II 465 ckm; 700 MVAr STATCOMs"
+703685:1,Pune-III Transmission,IV-D,3455,Under implementation,"4500 MVA Pune-III GIS; 765 kV Boisar-II to Pune-III 456 ckm"
+703655:1,Powergrid West Central Transmission,V-A,24819,Under implementation,"6000 MW +/-800 kV LCC HVDC KPS2 to Nagpur; 2409 ckm bipole; 9000 MVA at Nagpur"
+703677:1,KPS III HVDC Transmission (Adani Energy Solutions),V-C,12000,Under implementation,"2500 MW VSC HVDC KPS3 to South Olpad; 1157 ckm bipole"
+674611:5,Powergrid Khavda II-C Transmission,n/a (Karnataka; drop),4445,Under implementation,Koppal-II / Gadag-II in Karnataka - Khavda-named shell SPV

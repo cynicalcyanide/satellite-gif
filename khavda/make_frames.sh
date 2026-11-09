@@ -22,10 +22,10 @@
 #
 # The second run re-renders from the cache, so the two GIFs cost one fetch.
 #
-# Series starts at Q1 2022, not Q1 2020: on this scene the first eight quarters
-# are bare salt with no visible construction, so they read as a dead opening.
-# The 2020-21 frames are still in the cache -- set --start 2020-01 to get them
-# back without refetching.
+# Series starts at Q1 2023, not Q1 2020: on this scene nothing is visibly built
+# before 2023, so the earlier quarters read as a dead opening. The 2020-22
+# frames are still in the cache -- set --start 2020-01 to get them back without
+# refetching.
 #
 # Then: .venv/bin/python khavda/make_figures.py && ./khavda/build_deck.sh
 #
@@ -63,7 +63,7 @@ if [ -s "$ROOT/khavda/parcels.geojson" ]; then
 fi
 
 COMMON="--lat 24.100 --lon 69.465 --radius-km 27x15.1875 \
-    --start 2022-01 --end 2026-10 --interval 3m \
+    --start 2023-01 --end 2026-10 --interval 3m \
     --sat sentinel2 --max-cloud 30 --width 1600 \
     --fps 1 --hold 3 \
     --scale-bar --contrast 1.2 --sharpen 0.6 \
@@ -97,11 +97,13 @@ meta = {
     'satLast': f"{len(rows) - 1:02d}",
     'satFirstFile': 'frames/' + rows[0]['file'],
     'satLastFile': 'frames/' + rows[-1]['file'],
-    'satGridA': pick('Q1 2020', 'Q2 2020'),
-    'satGridB': pick('Q4 2021', 'Q1 2022'),
-    'satGridC': pick('Q1 2024', 'Q2 2024'),
-    'satGridD': pick('Q3 2025', 'Q4 2025'),
-    'satGridE': pick('Q1 2026', 'Q2 2026'),
+    # Six stills spread across the series, Q3 avoided: the monsoon quarters
+    # composite from very few scenes and come out hazy.
+    'satGridA': pick('Q1 2023', 'Q2 2023'),
+    'satGridB': pick('Q4 2023', 'Q1 2024'),
+    'satGridC': pick('Q2 2024', 'Q1 2024'),
+    'satGridD': pick('Q1 2025', 'Q2 2025'),
+    'satGridE': pick('Q4 2025', 'Q1 2026'),
     'satGridF': rows[-1]['label'] and 'frames/' + rows[-1]['file'],
 }
 with open(os.path.join(out, 'frames_meta.tex'), 'w') as fh:

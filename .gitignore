@@ -6,3 +6,6 @@ __pycache__/
 khavda/deck/frames/
 khavda/deck/*.log
 khavda/deck/khavda_notes.*
+khavda/deck2/frames/
+khavda/deck2/*.log
+khavda/deck2/tikz/preview_*.png

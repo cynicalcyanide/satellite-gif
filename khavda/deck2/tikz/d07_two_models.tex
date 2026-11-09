@@ -1,0 +1,14 @@
+\begin{tikzpicture}[node distance=3mm,every node/.style={text width=5.6cm}]
+\node[font=\footnotesize\bfseries,color=SpNearBlack,align=left] (lh) at (0,0) {Self-build: Adani, NTPC};
+\node[font=\footnotesize\bfseries,color=SpOrange,align=left] (rh) at (6.9,0) {Plug-and-play landlords: GSECL, GIPCL};
+\node[greybox,font=\scriptsize,align=left,below=of lh] (l1) {AGEL master lease (44,500 to 53,800 ha)};
+\node[greybox,font=\scriptsize,align=left,below=of l1] (l2) {Step-down SPVs, one per 100 to 500 MW tranche};
+\node[greybox,font=\scriptsize,align=left,below=of l2] (l3) {Captive EPC; panels, turbines, cement from the group (Mundra)};
+\node[greybox,font=\scriptsize,align=left,below=of rh] (r1) {Sub-park infrastructure: 33/400 kV pooling stations, roads, water};
+\node[greybox,font=\scriptsize,align=left,below=of r1] (r2) {Plots sub-leased at 1.85 ha per MW to GUVNL auction winners};
+\node[greybox,font=\scriptsize,align=left,below=of r2] (r3) {Tenants: SAEL 1,200 MW, SJVN 1,300, NLC 600, NHPC 400, Coal India 300, JSW 300, KPI Green 200};
+\draw[arr] (l1) -- (l2);
+\draw[arr] (l2) -- (l3);
+\draw[accentarr] (r1) -- (r2);
+\draw[accentarr] (r2) -- (r3);
+\end{tikzpicture}

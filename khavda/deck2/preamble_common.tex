@@ -1,0 +1,22 @@
+% Shared colours and TikZ libraries for the deck and for standalone diagram tests.
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,decorations.pathreplacing,backgrounds,fit}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\definecolor{SpOrange}{rgb}{0.9490196,0.4784314,0.4117647}   % #F27A69 accent
+\definecolor{SpLightGray}{rgb}{0.9490196,0.9568627,0.9450980} % #F2F4F1 panel
+\definecolor{SpNearBlack}{rgb}{0.1098039,0.1098039,0.1098039} % #1C1C1C ink
+\definecolor{SpBlue}{RGB}{74,111,138}    % #4A6F8A second series only when two hues are unavoidable
+\definecolor{Ink2}{RGB}{90,90,90}
+\definecolor{Muted}{RGB}{138,138,138}
+\definecolor{Grey}{RGB}{201,201,201}
+\definecolor{Grey2}{RGB}{230,230,230}
+\definecolor{OrangeTint}{RGB}{253,235,231}
+\tikzset{
+  box/.style={draw=Grey,fill=white,rounded corners=3pt,inner sep=5pt,align=center,font=\footnotesize},
+  accentbox/.style={box,draw=SpOrange,fill=OrangeTint},
+  greybox/.style={box,draw=SpLightGray,fill=SpLightGray},
+  arr/.style={-{Stealth[length=2mm]},Grey,thick},
+  accentarr/.style={-{Stealth[length=2mm]},SpOrange,thick},
+  lbl/.style={font=\scriptsize\color{Ink2},align=center},
+}

@@ -1,0 +1,28 @@
+\begin{tikzpicture}[x=1cm,y=0.0152cm,line cap=round,line join=round]
+  % height axis
+  \foreach \h in {50,100,150,200} {\draw[Grey2,thin] (0.45,\h) -- (6.05,\h);}
+  \draw[Grey,thick] (0.45,0) -- (0.45,220);
+  \foreach \h in {0,50,100,150,200} {\draw[Grey,thick] (0.38,\h) -- (0.45,\h); \node[font=\tiny,text=Muted,anchor=east,inner sep=1pt] at (0.36,\h) {\h};}
+  \node[font=\tiny,text=Muted,anchor=south,inner sep=1pt] at (0.45,222) {m};
+  % ground
+  \draw[Grey,thick] (0.45,0) -- (6.05,0);
+  % (a) 5.2 MW turbine, hub 140 m, rotor 160 m
+  \fill[SpOrange] (1.62,0) -- (1.78,0) -- (1.74,140) -- (1.66,140) -- cycle;
+  \draw[SpOrange,line width=1.6pt] (1.70,140) -- (1.70,220);
+  \draw[SpOrange,line width=1.6pt] (1.70,140) -- (2.765,100);
+  \draw[SpOrange,line width=1.6pt] (1.70,140) -- (0.635,100);
+  \fill[SpOrange] (1.70,140) circle[x radius=0.07,y radius=4.6];
+  % (b) 2 MW turbine, hub 80 m, rotor 100 m
+  \fill[Grey] (3.84,0) -- (3.96,0) -- (3.93,80) -- (3.87,80) -- cycle;
+  \draw[Grey,line width=1.4pt] (3.90,80) -- (3.90,130);
+  \draw[Grey,line width=1.4pt] (3.90,80) -- (4.566,55);
+  \draw[Grey,line width=1.4pt] (3.90,80) -- (3.234,55);
+  \fill[Grey] (3.90,80) circle[x radius=0.06,y radius=4];
+  % (c) Statue of Unity, 182 m
+  \fill[Grey,rounded corners=2pt] (5.28,0) -- (5.72,0) -- (5.64,182) -- (5.36,182) -- cycle;
+  % labels
+  \node[font=\tiny,text=SpNearBlack,align=center,text width=2.1cm,anchor=north] at (1.70,-8) {5.2 MW, 160 m rotor, 220 m tip};
+  \node[font=\tiny,text=Ink2,align=center,text width=1.7cm,anchor=north] at (3.90,-8) {2 MW, 100 m rotor};
+  \node[font=\tiny,text=Ink2,align=center,text width=1.5cm,anchor=north] at (5.50,-8) {Statue of Unity, 182 m};
+  \node[font=\tiny,text=SpOrange,align=left,text width=2.3cm,anchor=north west] at (2.95,215) {swept area 20,106 m$^2$ per turbine};
+\end{tikzpicture}

@@ -1,0 +1,24 @@
+\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round]
+  % Layer 1: physics
+  \node[font=\scriptsize\bfseries,text=SpNearBlack,anchor=west,inner sep=0pt] at (0,4.85) {Layer 1: one synchronous copper pool, 50.00 Hz (physics)};
+  \node[box,text width=1.4cm] (kh) at (0.95,3.75) {Khavda injects};
+  \node[box,text width=2.3cm] (gj) at (3.55,3.75) {Gujarat loads nearby (least-impedance path)};
+  \node[box,text width=1.7cm] (ko) at (9.95,3.75) {Koyna / Trombay plants};
+  \node[box,text width=1.7cm] (mu) at (12.4,3.75) {Mumbai data centre draws};
+  \draw[arr] (kh) -- (gj);
+  \draw[arr] (ko) -- (mu);
+  \draw[{Stealth[length=2mm]}-{Stealth[length=2mm]},Grey,thin] (gj.east) -- (ko.west);
+  \node[font=\tiny,text=Ink2,align=center,text width=3.4cm,anchor=north] at (6.9,3.65) {no storage in the wires: any mismatch moves the frequency};
+  % divider
+  \draw[Grey,thin] (0,2.85) -- (13.4,2.85);
+  % Layer 2: money
+  \node[font=\scriptsize\bfseries,text=SpNearBlack,anchor=west,inner sep=0pt] at (0,2.6) {Layer 2: 96 fifteen-minute ABT meter blocks (money)};
+  \foreach \i in {0,...,11} {\draw[Grey,fill=Grey2,thin] (0.1+0.5*\i,1.55) rectangle (0.5+0.5*\i,1.95);}
+  \draw[SpOrange,fill=SpOrange,thin] (3.1,1.55) rectangle (3.5,1.95);
+  \draw[SpOrange,fill=SpOrange,thin] (5.1,1.55) rectangle (5.5,1.95);
+  \node[font=\tiny,text=SpOrange,anchor=north,inner sep=2pt] at (3.3,1.55) {T1 13:00};
+  \node[font=\tiny,text=SpOrange,anchor=north,inner sep=2pt] at (5.3,1.55) {T2 22:00};
+  \node[font=\tiny,text=Muted,anchor=west,inner sep=2pt] at (6.1,1.75) {$\ldots$ 96};
+  \node[font=\tiny,text=Ink2,align=left,text width=6.4cm,anchor=north west,inner sep=0pt] at (0.1,1.05) {generator and buyer are matched block by block; no interstate banking};
+  \node[accentbox,text width=5.1cm,anchor=east] at (13.4,1.5) {FDRE / RTC: solar + 5.2 MW wind + BESS behind the Khavda meter inject a flat 100 MW in every block};
+\end{tikzpicture}

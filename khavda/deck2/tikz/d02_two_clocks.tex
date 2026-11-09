@@ -1,0 +1,14 @@
+\begin{tikzpicture}[x=0.16cm,y=1cm]
+\draw[Grey] (0,0) -- (60,0);
+\foreach \m in {0,12,24,36,48} {\draw[Grey] (\m,0) -- (\m,-0.1); \node[font=\tiny,color=Muted,anchor=north] at (\m,-0.12) {\m};}
+\draw[Grey] (60,0) -- (60,-0.1);
+\node[font=\tiny,color=Muted,anchor=north] at (60,-0.12) {60 months};
+\foreach \i in {0,...,8} {\fill[Ink2] (\i*2+0.2,2.42) rectangle (\i*2+1.8,2.6);}
+\fill[SpNearBlack] (0,1.9) rectangle (12,2.3);
+\fill[Ink2] (12,1.9) rectangle (18,2.3);
+\node[font=\scriptsize,color=Ink2,anchor=west,text width=6.3cm,align=left] at (19.5,2.1) {\textbf{\color{SpNearBlack}On-site generation clock: 12 to 18 months.} Flat state wasteland, kit from Mundra, robotic install: 5 GW a year.};
+\fill[SpOrange] (0,0.3) rectangle (36,0.7);
+\fill[SpOrange!55!white] (36,0.3) rectangle (60,0.7);
+\node[font=\scriptsize,color=Ink2,anchor=south west,text width=9.5cm,align=left] at (0,0.85) {\textbf{\color{SpOrange}Off-site transmission clock: 36 to 60 months.} 765 kV AC and $\pm$800 kV HVDC across private farmland: right-of-way fights at 229 of 690 towers.};
+\node[greybox,font=\scriptsize,text width=2.6cm,align=left,anchor=west] at (63,1.2) {\textbf{Result, mid-2026:} 14.8 GW connected, 9,000 MW allowed out.};
+\end{tikzpicture}

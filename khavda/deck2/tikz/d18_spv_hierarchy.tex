@@ -1,0 +1,24 @@
+\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round]
+  % ownership column
+  \node[accentbox,text width=4.4cm] (agel) at (3.9,4.45) {Adani Green Energy Ltd (AGEL), listed parent};
+  \node[box,text width=5.2cm] (jv) at (3.9,3.35) {50:50 JV holding with TotalEnergies (equity farm-down of de-risked SPV clusters)};
+  \node[greybox,text width=1.45cm,font=\scriptsize,minimum height=0.85cm] (s1) at (0.95,2.0) {AGE Twenty Four A Ltd};
+  \node[greybox,text width=1.45cm,font=\scriptsize,minimum height=0.85cm] (s2) at (2.9,2.0) {AGE Twenty Five B Ltd};
+  \node[greybox,text width=1.45cm,font=\scriptsize,minimum height=0.85cm] (s3) at (4.85,2.0) {\ldots};
+  \node[greybox,text width=1.45cm,font=\scriptsize,minimum height=0.85cm] (s4) at (6.8,2.0) {AGE Fifty Seven Ltd};
+  \draw[arr] (agel) -- (jv);
+  \draw[arr] (jv.south) -- (3.9,2.75) -- (0.95,2.75) -- (s1.north);
+  \draw[arr] (3.9,2.75) -- (2.9,2.75) -- (s2.north);
+  \draw[arr] (3.9,2.75) -- (4.85,2.75) -- (s3.north);
+  \draw[arr] (3.9,2.75) -- (6.8,2.75) -- (s4.north);
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt},Grey,thick] (0.15,1.45) -- (7.6,1.45);
+  \node[font=\tiny,text=Ink2,align=center,text width=7.4cm,anchor=north] at (3.875,1.25) {24+ step-down SPVs, 100 to 500 MW each; own PPA, own non-recourse debt; bundled into Restricted Groups for USD green bonds (7 to 8\%) replacing bank loans (9.25 to 10.5\%)};
+  % money flows to group suppliers
+  \node[box,text width=3.3cm,font=\scriptsize,execute at begin node=\hyphenpenalty=10000\relax] (sup1) at (11.5,3.25) {ANIL, Mundra: modules and turbines};
+  \node[box,text width=3.3cm,font=\scriptsize,execute at begin node=\hyphenpenalty=10000\relax] (sup2) at (11.5,2.0) {Ambuja / ACC: cement; APSEZ: port logistics};
+  \node[box,text width=3.3cm,font=\scriptsize,execute at begin node=\hyphenpenalty=10000\relax] (sup3) at (11.5,0.75) {Adani Infra: EPC (also builds NHPC's 600 MW)};
+  \draw[accentarr] (s4.east) -- (8.2,2.0) -- (8.2,3.25) -- (sup1.west);
+  \draw[accentarr] (8.2,2.0) -- (sup2.west);
+  \draw[accentarr] (8.2,2.0) -- (8.2,0.75) -- (sup3.west);
+  \node[font=\tiny,text=SpOrange,align=center,text width=1.4cm,anchor=south] at (9.0,2.1) {debt-funded capex (75\% bank debt)};
+\end{tikzpicture}

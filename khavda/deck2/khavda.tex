@@ -1,0 +1,552 @@
+% The Khavda Renewable Energy Park: engineering, industrial organisation,
+% grid physics and political economy. Beamer, XKDR colour theme.
+%
+% Build: ./khavda/build_deck.sh        (from the repo root; pdflatex twice)
+%
+% Images you supply go in images/ (see \imgslot calls: the placeholder on each
+% slide names the file it wants). Satellite frames from make_frames.sh go in
+% frames/. Every slot shows a grey placeholder until its file exists, so the
+% deck always compiles.
+\documentclass[aspectratio=169,10pt,t]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[scaled=0.95]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{graphicx,booktabs,array,tcolorbox,animate}
+\input{preamble_common.tex}
+
+% ---- theme ---------------------------------------------------------------
+\usetheme{default}
+\usecolortheme{XKDR}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}{\textcolor{SpOrange}{\rule[0.15ex]{0.8ex}{0.8ex}}}
+\setbeamertemplate{enumerate items}[default]
+\setbeamercolor{normal text}{fg=SpNearBlack,bg=white}
+\setbeamercolor{frametitle}{fg=SpNearBlack,bg=SpLightGray}
+\setbeamercolor{item}{fg=SpOrange}
+\setbeamercolor{enumerate item}{fg=SpOrange}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamersize{text margin left=8mm,text margin right=8mm}
+\setlength{\leftmargini}{1.2em}
+\setbeamertemplate{frametitle}{%
+  \vspace{-1pt}%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=9.5mm,dp=2mm,leftskip=8mm,rightskip=8mm]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle\hfill
+    \raisebox{-1mm}{\includegraphics[height=5.5mm]{logos/xkdr_mark.png}}%
+  \end{beamercolorbox}\vspace{1.5mm}}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=4.5mm,dp=2.5mm,leftskip=8mm,rightskip=8mm]{normal text}%
+    \scriptsize\textcolor{Muted}{The Khavda Renewable Energy Park \,\textperiodcentered\, November 2026}%
+    \hfill\scriptsize\textcolor{Muted}{\insertframenumber/\inserttotalframenumber}%
+  \end{beamercolorbox}}
+
+% ---- helpers ---------------------------------------------------------------
+% \imgslot{file}{width}{height}{what to drop in}: the image, or a grey box asking for it
+\newcommand{\imgslot}[4]{%
+  \IfFileExists{#1}{\includegraphics[width=#2,height=#3,keepaspectratio]{#1}}{%
+    \begin{tikzpicture}
+      \node[fill=SpLightGray,draw=Grey,minimum width=#2,minimum height=#3,text width=0.85*#2,
+            align=center,font=\scriptsize\color{Ink2},inner sep=4pt] {#4\\[3pt]\texttt{\detokenize{#1}}};
+    \end{tikzpicture}}}
+\newcommand{\dia}[2]{\resizebox{!}{#2}{\input{tikz/#1.tex}}}      % diagram capped at height
+\newcommand{\diaw}[2]{\resizebox{#2}{!}{\input{tikz/#1.tex}}}     % diagram capped at width
+\newcommand{\kpi}[2]{{\color{SpOrange}\fontsize{19}{22}\selectfont\textbf{#1}}\\[1pt]{\footnotesize\color{Ink2}#2}}
+\newcommand{\src}[1]{\par\vspace{1mm}{\tiny\color{Muted}#1}}
+\newcommand{\lead}[1]{{\small\textbf{#1}}\par\vspace{1mm}}
+\newenvironment{pts}{\begin{itemize}\footnotesize\setlength{\itemsep}{3pt}}{\end{itemize}}
+
+\providecommand{\satLast}{27}
+\providecommand{\satLastFile}{frames/khavda_27.png}
+\InputIfFileExists{frames/frames_meta.tex}{}{}
+\newif\ifsatframes
+\IfFileExists{frames/khavda_00.png}{\satframestrue}{\satframesfalse}
+\newcommand{\titleimage}{images/title_satellite.png}
+\IfFileExists{\titleimage}{}{\ifsatframes\renewcommand{\titleimage}{\satLastFile}\fi}
+\newif\iftitleimage
+\IfFileExists{\titleimage}{\titleimagetrue}{\titleimagefalse}
+
+\begin{document}
+
+% ==== 1. Title ==============================================================
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \iftitleimage
+      \node[anchor=center,inner sep=0] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{\titleimage}};
+      \fill[SpNearBlack,opacity=0.55] (current page.south west) rectangle ([yshift=4.1cm]current page.south east);
+    \else
+      \fill[SpNearBlack] (current page.south west) rectangle (current page.north east);
+      \node[anchor=north east,xshift=-8mm,yshift=-8mm,text width=6cm,align=right,font=\scriptsize\color{Grey}] at (current page.north east)
+        {Full-bleed Sentinel-2 still of the solar blocks on the salt crust goes here:\\ \texttt{images/title\_satellite.png}};
+    \fi
+    \node[anchor=south west,xshift=8mm,yshift=5mm,align=left] at (current page.south west){%
+      {\fontsize{26}{30}\selectfont\bfseries\color{white}The Khavda Renewable Energy Park}\\[4pt]
+      {\normalsize\color{white}Engineering, industrial organisation, grid physics and political economy}\\[2pt]
+      {\small\color{Grey}$24^\circ07'$\,N, $69^\circ21'$\,E \,\textperiodcentered\, Great Rann of Kutch, Gujarat}\\[7pt]
+      {\small\color{white}\textbf{726 km\textsuperscript{2}} footprint \quad\textcolor{SpOrange}{|}\quad \textbf{30 GW} target \quad\textcolor{SpOrange}{|}\quad \textbf{Rs 1,50,000 crore} capex}};
+    \node[anchor=south east,xshift=-8mm,yshift=6mm] at (current page.south east){\includegraphics[width=2.8cm]{logos/xkdr_logo_wide.png}};
+  \end{tikzpicture}
+\end{frame}}
+
+% ==== 2. Two clocks =========================================================
+\begin{frame}{The core thesis: the two clocks}
+  \begin{pts}
+    \item \textbf{On-site generation clock, 12 to 18 months.} Flat state wasteland, a vertically integrated supply chain and robotic installation let developers add over 5 GW of solar and wind a year.
+    \item \textbf{Off-site transmission clock, 36 to 60 months.} 765 kV AC and $\pm$800 kV HVDC lines cross hundreds of kilometres of private farmland and meet right-of-way resistance.
+    \item \textbf{The bottleneck.} By mid-2026, 14.8 GW was connected but the grid operator capped evacuation at 9,000 MW.
+  \end{pts}
+  \vspace{1mm}
+  \centering\dia{d02_two_clocks}{3.6cm}
+\end{frame}
+
+% ==== 3. Spatial scale ======================================================
+\begin{frame}{Spatial scale and how it grew}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \imgslot{images/sat_2023.png}{\textwidth}{2.55cm}{Sentinel-2 still, early 2023: salt flat, roads, first arrays}\\[2pt]
+      \imgslot{images/sat_2026.png}{\textwidth}{2.55cm}{Sentinel-2 still, late 2026: dark arrays across the salt}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \imgslot{images/map_annotated.png}{\textwidth}{5.2cm}{Annotated satellite map: Pakistan border, India Bridge, KPS1, KPS2, KPS3}
+    \end{column}
+  \end{columns}
+  \vspace{2mm}
+  \begin{columns}[T]
+    \begin{column}{0.33\textwidth}\kpi{72,600 ha}{726 km\textsuperscript{2} of saline mudflat, about the size of Singapore}\end{column}
+    \begin{column}{0.33\textwidth}\kpi{538 km\textsuperscript{2}}{held by Adani Green (53,800 ha), five times Paris}\end{column}
+    \begin{column}{0.33\textwidth}\kpi{1 km}{from the Pakistan border near Vighakot; Bhuj is 125 km south}\end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 3b. Animation (only when frames exist) ==================================
+\ifsatframes
+\begin{frame}{Quarter by quarter, 2020 to 2026}
+  \centering
+  \animategraphics[autoplay,loop,width=0.86\textwidth,controls={play,stop}]{1}{frames/khavda_}{00}{\satLast}
+  \src{Sentinel-2 cloud-free quarterly composites, one second per frame; contains modified Copernicus Sentinel data.}
+\end{frame}
+\fi
+
+% ==== 4. The lease ==========================================================
+\begin{frame}{Political economy of land: the 40-year wasteland lease}
+  \begin{columns}[T]
+    \begin{column}{0.4\textwidth}
+      \begin{pts}
+        \item \textbf{Around the LARR Act, 2013.} Gujarat allotted state-owned, unsurveyed revenue wasteland: no private acquisition, no litigation.
+        \item \textbf{Tenure.} A 40-year master lease through Gujarat Power Corporation (GPCL): ten years to build, thirty to run.
+        \item \textbf{Cost.} Rs 15,000 per hectare a year, rising 10\% every three years, against Rs 74,000 to 98,800 for private arid land in Rapar taluka.
+        \item \textbf{Anti-hoarding.} 50\% of capacity within three years of the approach road, 100\% within five.
+      \end{pts}
+    \end{column}
+    \begin{column}{0.27\textwidth}
+      \centering\dia{d04_lease_flow}{5.4cm}
+    \end{column}
+    \begin{column}{0.33\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig04_rent.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 5. Border rules =======================================================
+\begin{frame}{Border rules and the 2023 reallocation}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{pts}
+        \item \textbf{2020 allocation.} Private developers capped at 20,000 ha. SECI, a central agency, held the 23,000 ha nearest the border as a wind-only zone.
+        \item \textbf{21 April 2023.} A South Block meeting relaxed defence norms: wind turbines 1 to 2 km from the border, hybrid solar-wind 2 to 8 km.
+        \item \textbf{Capacity jump.} Solar beside wind lifted the parcel from 1,100 MW to 10,000 MW.
+        \item \textbf{Pre-emptive reallocation.} Adani applied on 3 July 2023, two weeks before SECI surrendered the parcel on 17 July. The state's High-Powered Committee reassigned it to Adani on 24 August, without a fresh tender.
+      \end{pts}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering\dia{d05_border_zones}{3.9cm}
+    \end{column}
+  \end{columns}
+  \vspace{1mm}
+  \centering\diaw{d05_timeline}{\textwidth}
+\end{frame}
+
+% ==== 6. Who builds =========================================================
+\begin{frame}{A multi-developer enclave: who builds inside Khavda}
+  \lead{Not one firm's park: a private anchor beside central and state public-sector utilities.}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      {\scriptsize\renewcommand{\arraystretch}{1.25}
+      \begin{tabular}{@{}l r r l@{}}
+        \toprule
+        \textbf{Developer} & \textbf{Land, ha} & \textbf{Target, MW} & \textbf{Connected, late 2026} \\
+        \midrule
+        Adani Green (AGEL) and group & 44,500 to 53,800 & 30,000 & 9,400+ MW, 6.63 GWh BESS \\
+        NTPC Renewable Energy & 9,500 to 9,611 & 4,750 & 2,560 to 2,650 MW \\
+        Sarjan Realities (Suzlon) & 9,500 & 4,750 & 1,098 MW, at KPS3 \\
+        GSECL and tenants & 6,650 & 3,325 & 1,000 to 1,600 MW \\
+        GIPCL and tenants & 4,750 & 2,375 & 600 MW \\
+        SECI (surrendered 2023) & 23,000 to Adani & 3,000 wind & none \\
+        \bottomrule
+      \end{tabular}}
+      \src{Analysis note; WRPC report (May 2026); Scroll RTI records; GIPCL.}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig06_land_share.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 7. Two models =========================================================
+\begin{frame}{Two institutional models: anchor IPP and plug-and-play landlords}
+  \begin{pts}
+    \item \textbf{Self-build.} AGEL and NTPC put plants directly on their parcels with in-house or contracted EPC teams.
+    \item \textbf{Landlords.} GSECL and GIPCL act as Solar Power Park Developers: they build the 33/400 kV pooling stations, roads and water points, then sub-lease plots at 1.85 ha per MW to GUVNL auction winners. The tenants are the control group: same land, same rent, bought at auction.
+  \end{pts}
+  \vspace{1mm}
+  \centering\dia{d07_two_models}{4.3cm}
+\end{frame}
+
+% ==== 8. Bargain ============================================================
+\begin{frame}{The equilibrium: how both sides make money}
+  \lead{The public-private bargain: barren salt marsh becomes a tax base and cheap power for the state, and a multi-stage monetisation machine for the group.}
+  \centering\dia{d08_bargain}{4.9cm}
+\end{frame}
+
+% ==== 9. Resource physics ===================================================
+\begin{frame}{Resource physics: why Kutch is a meteorological sweet spot}
+  \begin{columns}[T]
+    \begin{column}{0.38\textwidth}
+      \begin{pts}
+        \item \textbf{Sun.} 2,060 kWh/m\textsuperscript{2} a year, over 300 clear days: second in India only to Ladakh.
+        \item \textbf{Wind.} 8 m/s on average, channelled across the flat Rann from the Arabian Sea about 150 km away.
+        \item \textbf{Density.} 2.0 ha per MW for hybrid parks, 1.85 for pure solar sub-parks; about 2,400 modules per MW.
+        \item \textbf{Yield.} 81 to 87 billion kWh a year across 30 GW; 1.625 GWh per hectare a year on AGEL's footprint.
+      \end{pts}
+    \end{column}
+    \begin{column}{0.62\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig09_resource_map.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 10. Solar hardware ====================================================
+\begin{frame}{Solar hardware: N-type TOPCon, salt albedo and trackers}
+  \begin{pts}
+    \item \textbf{Cell chemistry.} Phosphorus-doped TOPCon cells avoid boron-oxygen light-induced degradation and lose less in 48\,°C heat: $-0.29\%$ per °C against $-0.35\%$ for PERC.
+    \item \textbf{Albedo.} The crust is 35 to 45\% sodium chloride and reflects 40 to 55\% of light onto the rear glass of bifacial modules.
+    \item \textbf{Trackers and overload.} Horizontal single-axis trackers with a 1.356$\times$ DC-to-AC ratio (1,131 MW\textsubscript{DC} per 834 MW\textsubscript{AC} in KPI Green's EPC filing). Net: 33\% CUF against 21 to 25\% for fixed-tilt monofacial plants.
+  \end{pts}
+  \centering\dia{d10_tracker_section}{3.7cm}
+\end{frame}
+
+% ==== 11. Wind ==============================================================
+\begin{frame}{Wind aerodynamics: the 5.2 MW turbine}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{pts}
+        \item \textbf{India's largest onshore turbine.} 5.2 MW, co-developed by AGEL with Wind2Energy (W2E) of Germany.
+        \item \textbf{Dimensions.} 160 m rotor (78.6 m blades), 120 to 140 m hub, 200 to 220 m to the tip; 20,106 m\textsuperscript{2} swept per turbine.
+        \item \textbf{Cubic physics.} $P = \tfrac{1}{2}\,\rho\,A\,v^{3}\,C_p$. A hub at 140 m sits in faster, smoother air; in an 8 m/s regime that holds wind CUF above 35\%.
+      \end{pts}
+      \vspace{2mm}
+      \begin{tcolorbox}[colback=SpLightGray,colframe=SpLightGray,arc=2pt,left=3mm,right=3mm,top=1mm,bottom=1mm]
+        \footnotesize A fall from 8 to 6 m/s ($-25\%$) cuts output by 58\%: siting and hub height are the whole game.
+      \end{tcolorbox}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering\dia{d11_turbine_scale}{5.4cm}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 12. Diurnal ===========================================================
+\begin{frame}{Diurnal and seasonal complementarity}
+  \begin{columns}[T]
+    \begin{column}{0.62\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig12_diurnal.png}
+    \end{column}
+    \begin{column}{0.38\textwidth}
+      \begin{pts}
+        \item \textbf{Day, 10:00 to 16:00.} Trackers and 1.35$\times$ DC overload hold solar at a flat 90 to 100\% of inverter capacity.
+        \item \textbf{Night, 20:00 to 06:00.} The desert floor cools, marine winds accelerate: wind runs at 60 to 80\% when solar is zero.
+        \item \textbf{Monsoon.} Wind peaks June to September, when cloud cuts solar.
+        \item \textbf{Shared substations} lift combined hybrid CUF to 38 to 42\%.
+      \end{pts}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 13. Soil ==============================================================
+\begin{frame}{Desert civil engineering: sabkha soil, brine and seismic zone V}
+  \begin{pts}
+    \item \textbf{Terrain.} 3 to 4 m above sea level; monsoon tides and runoff turn the top soil into hypersaline slush (CBR under 2\%). Groundwater at 3.8 to 5.7 m is saline; the 2001 Bhuj earthquake (M\textsubscript{w} 7.7) was nearby.
+    \item \textbf{Countermeasures.} Pre-augered micro-piles 4 to 6 m deep with ZAM / C5-M coatings and sulphate-resisting slag cement; pile-raft foundations under the turbines; roads at least 150 mm above finished ground; inverters on plinths; 33 kV cables bedded in sand.
+  \end{pts}
+  \centering\dia{d13_soil_cutaway}{4.2cm}
+\end{frame}
+
+% ==== 14. Auxiliary =========================================================
+\begin{frame}{The auxiliary ecosystem and waterless operations}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{pts}
+        \item \textbf{Robotic dry cleaning.} Panels are brushed three to four nights a week by IoT robots, against 50 to 70 dust storms a year, saving about 45 billion litres of water annually.
+        \item \textbf{Payback.} Rs 12 to 15 lakh per MW of robots replaces Rs 3 to 5 lakh per MW a year of water hauling: three to four years. KPI Green alone runs 550 robots.
+        \item \textbf{A self-contained desert city.} On-site batching plants (no 125 km hauls from Bhuj); RO desalination, rain tanks and sewage treatment; private cellular towers, fire stations and townships for 8,000 to 15,200 workers in 48\,°C summers.
+      \end{pts}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \imgslot{images/robot.jpg}{\textwidth}{2.6cm}{Photo: a waterless cleaning robot on a tilted tracker row}\\[3pt]
+      \dia{d14_icons}{2.9cm}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 15. Scoreboard ========================================================
+\begin{frame}{The master buildout scoreboard (CMIE CapEx data)}
+  \lead{Generation is mostly built; storage is half built; the grid spine is almost entirely still to come.}
+  {\scriptsize\renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{@{}l l l l@{}}
+    \toprule
+    & \textbf{Completed} & \textbf{Under implementation} & \textbf{Announced / pipeline} \\
+    \midrule
+    \textbf{Generation}, 33,425 MW across 132 projects & \textcolor{SpOrange}{\textbf{12,248 MW}}, 84 projects & 19,057 MW, 44 projects & 2,145 MW Khavda-specific \\
+    \quad by technology & 9,840 solar, 1,424 wind, 984 hybrid & 14,671 solar, 436 wind, 3,950 hybrid & plus 16,000 MW multi-site (Tata, Serentica) \\
+    \addlinespace
+    \textbf{Battery storage}, 10,296 MWh across 6 projects & \textcolor{SpOrange}{\textbf{3,266 MWh}}, 4 Adani SPVs & 3,530 MWh (6.63 GWh energised by Oct 2026) & 3,500 MWh \\
+    \addlinespace
+    \textbf{ISTS transmission}, Rs 55,552 crore, 8 projects & \textcolor{SpOrange}{\textbf{1,500 MVA}}, Rs 334 crore (ICT at KPS3) & 40,500 MVA, 5,616 circuit-km, Rs 55,218 crore & \\
+    \bottomrule
+  \end{tabular}}
+  \vspace{1.5mm}
+  \begin{columns}[T]
+    \begin{column}{0.33\textwidth}\kpi{37\%}{of tracked generation MW complete}\end{column}
+    \begin{column}{0.33\textwidth}\kpi{32\%}{of tracked battery MWh complete}\end{column}
+    \begin{column}{0.33\textwidth}\kpi{0.6\%}{of transmission money spent to completion}\end{column}
+  \end{columns}
+  \src{CMIE CapEx extract, November 2026. Park-level umbrella records removed; a Karnataka line in a Khavda-named SPV dropped.}
+\end{frame}
+
+% ==== 16. FY phasing ========================================================
+\begin{frame}{Fiscal-year phasing: the two clocks in the data}
+  \centering
+  \includegraphics[width=0.86\textwidth]{figures/fig16_two_clocks.png}
+  \par\vspace{1mm}
+  {\footnotesize 16,505 MW of generation was scheduled before FY27 against zero Phase IV--V circuit-km; 73\% of the new lines (4,350 ckm, 21,500 MVA of HVDC bipoles) arrive in FY29 or later.}
+\end{frame}
+
+% ==== 17. Developers ========================================================
+\begin{frame}{Developer-by-developer execution (CMIE CapEx data)}
+  \centering
+  \includegraphics[width=0.84\textwidth]{figures/fig17_developers.png}
+  \par\vspace{1mm}
+  \begin{pts}
+    \item \textbf{Adani:} 8,193 MW complete in 79 records, 11,068 MW under way, in slices of 12.5 to 362.5 MW at a filed Rs 6.5 crore/MW (solar) and 6.0 (wind); 14 SPV projects totalling 2,784 MW are tied to SECI's manufacturing-linked tender.
+    \item \textbf{NTPC:} Khavda-I 1,255 MW and Khavda-II 1,200 MW done, 2,679 MW under way. \textbf{State sub-parks:} 1,600 MW done, 3,500 MW under way across SJVN, NLC, NHPC, SAEL, Coal India, JSW and Enren-II.
+  \end{pts}
+\end{frame}
+
+% ==== 18. SPVs ==============================================================
+\begin{frame}{Coasean industrial organisation: why Adani uses dozens of SPVs}
+  \centering\dia{d18_spv_hierarchy}{4.1cm}
+  \vspace{1mm}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      {\scriptsize
+      \textbf{1. Ring-fencing.} Each 100 to 500 MW SPV holds its own PPA and non-recourse debt; a default or curtailment in one cannot cross-default the parent.\par\vspace{2pt}
+      \textbf{2. Restricted-group refinancing.} Operating SPVs with 12+ months of cash flow are bundled to issue USD green bonds at 7 to 8\%, retiring construction loans at 9.25 to 10.5\%.}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      {\scriptsize
+      \textbf{3. Equity farm-downs.} 50\% stakes in de-risked clusters sold to TotalEnergies recycle equity without diluting parent control.\par\vspace{2pt}
+      \textbf{4. Vertical integration.} 75\% bank debt buys modules and turbines from ANIL (Mundra), cement from Ambuja/ACC, logistics from APSEZ and EPC from Adani Infra, which also builds NHPC's 600 MW block.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 19. Revenue ===========================================================
+\begin{frame}{Revenue mechanics and the battery arbitrage pivot}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \begin{pts}
+        \item \textbf{Tier 1, 75 to 80\%: 25-year PPAs.} SECI at Rs 2.92/kWh (manufacturing-linked), MSEDCL 5,000 MW at Rs 2.70, GUVNL.
+        \item \textbf{Tier 2, about 10\%: corporate and captive.} Google (Oct 2024), Asahi India Glass (20.8 MW hybrid, Jan 2026), Ambuja Cements captive blocks (356 MW).
+        \item \textbf{Tier 3, 10 to 15\%: battery arbitrage.} 3.55 GWh in June 2026 to 6.63 GWh by 1 October, over half of India's 12.6 GWh fleet; Rs 15,000 crore for 10 GWh more in FY27. Charge on curtailed noon solar behind the 9,000 MW cap, discharge 19:00 to 22:00 at the Rs 10/kWh exchange ceiling.
+      \end{pts}
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig19_iex_bess.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 20. Project finance ===================================================
+\begin{frame}{Project finance: a 1 GW\textsubscript{AC} solar + 500 MWh battery SPV}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      {\scriptsize\renewcommand{\arraystretch}{1.2}
+      \begin{tabular}{@{}l r@{}}
+        \toprule
+        \textbf{System} & 1,000 MW\textsubscript{AC}, 1,350 MWp\textsubscript{DC} TOPCon on trackers; 250 MW / 500 MWh LFP, 88\% RTE \\
+        Energy at 33\% CUF & 2,890.8 MU a year \\
+        \midrule
+        \textbf{Capex} & \textbf{Rs 5,350 crore} \\
+        \quad solar, piling, pooling bay & Rs 4,575 crore \\
+        \quad battery at Rs 1.55 crore/MWh & Rs 775 crore \\
+        Financing, 75:25 & Rs 4,012.5 crore debt at 9.0\%; Rs 1,337.5 crore equity \\
+        \midrule
+        \textbf{Year 1} & \\
+        \quad base PPA, 2,715.8 MU at Rs 2.70 & Rs 733.27 crore \\
+        \quad evening arbitrage, 154 MU at Rs 7.80 & Rs 120.12 crore \\
+        \quad gross revenue; opex & Rs 853.39 crore; Rs 62.00 crore \\
+        \quad EBITDA (92.7\%) & \textbf{Rs 791.39 crore} \\
+        \quad debt service; DSCR & Rs 584.05 crore; \textbf{1.36$\times$} (1.58$\times$ average) \\
+        \bottomrule
+      \end{tabular}}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig20_irr.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 21. Not a free battery ================================================
+\begin{frame}{Why the grid is not a free battery: the 15-minute clock}
+  \begin{pts}
+    \item \textbf{Physics.} Electrons from Khavda flow down the least-impedance path to nearby Gujarat loads; a Mumbai data centre draws from nearby Maharashtra plants. Lines store nothing: any mismatch between injection and drawal moves the frequency off 50.00 Hz.
+    \item \textbf{Money.} Generator and buyer are metered by 0.2S-class ABT special energy meters in 15-minute blocks, 96 a day. There is no interstate banking, and state rules bar drawing banked solar in the evening peak.
+    \item \textbf{So} a flat 100 MW round-the-clock contract needs oversized solar, 5.2 MW wind and batteries \emph{behind} the Khavda meter, injecting 100 MW in every block.
+  \end{pts}
+  \centering\dia{d21_two_layers}{3.6cm}
+\end{frame}
+
+% ==== 22. Evacuation ========================================================
+\begin{frame}{Grid evacuation: pooling stations and the Rs 55,552 crore spine}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig22_transmission_map.png}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      {\scriptsize
+      \textbf{Inside the park.} 800 V inverters $\rightarrow$ 33 kV underground collectors $\rightarrow$ 18 developer pooling substations (33/400 kV) $\rightarrow$ three 765/400 kV GIS hubs, KPS1 to KPS3 (KPS4 planned).\par\vspace{3pt}
+      \textbf{Phases I and II, in service: the 9,000 MW ceiling.} Two 765 kV double circuits: KPS1 to Bhuj (107 km) and KPS2 to Lakadia (170 km).\par\vspace{3pt}
+      \textbf{Phase III, late.} KPS2 to Halvad, 492 ckm: 229 of 690 tower sites resisted, Telegraph Act orders, 266.7 ha of forest clearance; December 2025 slipped into 2026/27.\par\vspace{3pt}
+      \textbf{Phase IV, 7 GW AC spine.} KPS3 to Lakadia (404 ckm); Vadodara, South Olpad, Boisar-II, Pune-III; 20,000+ MVA of GIS and $\pm$300 to 400 MVAr STATCOMs.\par\vspace{3pt}
+      \textbf{Phase V, 8.5 GW HVDC.} $\pm$800 kV, 6,000 MW LCC from KPS2 to Nagpur (2,409 ckm, Rs 24,819 crore); $\pm$500 kV, 2,500 MW VSC from KPS3 to South Olpad (1,157 ckm, Rs 12,000 crore).}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 23. Blackout ==========================================================
+\begin{frame}{Anatomy of the 13 May 2026 blackout (WRPC telemetry)}
+  \begin{columns}[T]
+    \begin{column}{0.6\textwidth}
+      \includegraphics[width=\textwidth]{figures/fig23_telemetry.png}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      {\scriptsize
+      \textbf{Baseline, 14:00.} 14,733 MW RE and 1,174 MW BESS connected; 8,963 MW generating, at the 9,000 MW ceiling; 50.00 to 50.06 Hz.\par\vspace{2pt}
+      \renewcommand{\arraystretch}{1.2}
+      \begin{tabular}{@{}l r r r@{}}
+        \toprule
+        & \textbf{RE MW} & \textbf{BESS} & \textbf{SVG MVAr} \\
+        \midrule
+        KPS1 (Adani) & 7,894 & 475 & 4,150 \\
+        KPS2 (NTPC, GSECL, GIPCL) & 3,155 & -- & \textcolor{SpOrange}{\textbf{0}} \\
+        KPS3 (Adani, NTPC, SRPL) & 3,684 & 699 & 1,900 \\
+        \bottomrule
+      \end{tabular}\par\vspace{3pt}
+      \textbf{The cascade.} A distant fault near Indore (14:02:39) triggered ride-through; a 0.458 Hz oscillation grew; at 14:09:31 voltage sagged to 680 kV and reactive injection ramped from 145 to 900 MVAr. In a weak grid $\Delta V \approx \Delta Q / S_{sc}$: voltage hit 894 kV, 2,931 MW tripped on over-voltage, lines unloaded and the Ferranti rise worsened. Seventeen lines tripped in 17 seconds; 8,963 MW gone; 49.39 Hz.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 24. Benchmarking ======================================================
+\begin{frame}{Mega-park benchmarking}
+  \lead{Khavda is the largest single-site hybrid complex in the world, and the only one without hydro or coal inertia next door.}
+  {\scriptsize\renewcommand{\arraystretch}{1.15}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}p{2.1cm}@{}}
+    \toprule
+    & \textbf{Khavda, Gujarat} & \textbf{Ladakh RE} & \textbf{Talatan, Qinghai} & \textbf{Kubuqi, Inner Mongolia} & \textbf{Bhadla, Rajasthan} \\
+    \midrule
+    Target capacity & \textcolor{SpOrange}{\textbf{30 GW}} hybrid; 726 km\textsuperscript{2} & 13 GW RE + 12 GWh BESS & 19 to 25 GW & 16 GW & 2.25 GW \\
+    Operational, 2026 & about 14.8 GW connected; 5.1 GW built in FY26 & early works & majority built & phased & complete \\
+    Terrain, elevation & sea-level sabkha, 3 to 4 m; brine; seismic zone V & 4,500 m passes & dry plateau, 2,900 m, non-corrosive & desert, flexible coal nearby & arid, inland \\
+    Grid balancing & LFP batteries, STATCOMs, VSC-HVDC; no synchronous plant nearby & 1,268 ckm HVDC, Rs 20,774 crore & 1.28 GW Longyangxia hydro, 30 km away & 4 GW co-located coal & state grid \\
+    \bottomrule
+  \end{tabular}}
+  \src{Analysis note; public project disclosures. Figures for the comparators are approximate.}
+\end{frame}
+
+% ==== 25. Field questions ===================================================
+\begin{frame}{Field visit protocol: questions for domain experts}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{tcolorbox}[colback=SpLightGray,colframe=SpLightGray,arc=3pt,left=2.5mm,right=2.5mm,top=1mm,bottom=1mm,boxsep=0.5mm]
+        {\footnotesize\textbf{Chief geotechnical and civil engineer}}\\[2pt]
+        {\scriptsize
+        Measured lateral pile drift and ZAM coating corrosion on the 2024 tracker micro-piles after three monsoon brine cycles?\\[2pt]
+        After 500+ dry-brush passes over salt-crusted glass, how many basis points of anti-reflective transmittance are lost to micro-scratching?\\[2pt]
+        How much does construction silt cut rear-side albedo gain on operating blocks against your P90 model?}
+      \end{tcolorbox}
+      \begin{tcolorbox}[colback=OrangeTint,colframe=OrangeTint,arc=3pt,left=2.5mm,right=2.5mm,top=1mm,bottom=1mm,boxsep=0.5mm]
+        {\footnotesize\textbf{BESS, trading and strategy leads}}\\[2pt]
+        {\scriptsize
+        Of the MWh charged yesterday into the 6.63 GWh fleet, what share was otherwise-curtailed zero-cost power and what share diverted PPA power? Chiller parasitic load at 48\,°C?\\[2pt]
+        At what GWh scale do evening discharges cannibalise the Rs 10/kWh exchange ceiling?}
+      \end{tcolorbox}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{tcolorbox}[colback=white,colframe=Grey,arc=3pt,left=2.5mm,right=2.5mm,top=1mm,bottom=1mm,boxsep=0.5mm]
+        {\footnotesize\textbf{Pooling station (KPS1 to KPS3) and SCADA chief}}\\[2pt]
+        {\scriptsize
+        On the live SCADA screen now: pyranometer and anemometer theoretical generation against actual injection, against the 9,000 MW ceiling?\\[2pt]
+        Since the 894 kV event of 13 May 2026, how have SVG reactive droop curves been retuned, and what share of BESS inverters run in grid-forming, synthetic-inertia mode?}
+      \end{tcolorbox}
+      \begin{tcolorbox}[colback=white,colframe=Grey,arc=3pt,left=2.5mm,right=2.5mm,top=1mm,bottom=1mm,boxsep=0.5mm]
+        {\footnotesize\textbf{Industrial strategy lead}}\\[2pt]
+        {\scriptsize
+        What does the filed Rs 6.5 crore per MW include: land, pooling bay, grid connection, storage? Why do sub-park tenants file Rs 3.25 to 5.5?\\[2pt]
+        When Halvad and the HVDC links open, what happens to the evening arbitrage case for the batteries?}
+      \end{tcolorbox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 26. Crib sheet ========================================================
+\begin{frame}{On-site visual audit and pocket crib sheet}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      {\footnotesize\textbf{Three things to look at from the car}}
+      \begin{pts}
+        \item \textbf{Tracker angles at 12:30.} Rows should lie flat. A block feathered to 45 to 60° under a clear sky is being curtailed.
+        \item \textbf{Pile collars.} Where the 2024 piles meet the crust: rust weeping, monsoon scour around the concrete collars.
+        \item \textbf{Battery containers at PSS-5, 8, 10.} How many have cooling fans running and HV cables terminated into the PCS skids.
+      \end{pts}
+      \centering\dia{d26_tracker_angles}{2.6cm}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{tcolorbox}[colback=SpNearBlack,colframe=SpNearBlack,arc=3pt,left=3mm,right=3mm,top=2mm,bottom=2mm,coltext=white]
+        {\footnotesize\textbf{\textcolor{SpOrange}{Field equations}}}\\[4pt]
+        {\scriptsize
+        \textbf{Daily energy check.} 1,000 MW\textsubscript{AC} at 33\% CUF must export 7.92 MU a day (2,890.8 MU a year). An SPV exporting 2,200 MU a year is running at \textcolor{SpOrange}{25.1\%}, not 33\%: the gap is curtailment.\\[5pt]
+        \textbf{Cubic wind check.} $P \propto v^{3}$: 8 to 6 m/s is $-25\%$ in speed and \textcolor{SpOrange}{$-57.8\%$} in power.\\[5pt]
+        \textbf{Weak-grid voltage.} $\Delta V \approx \Delta Q / S_{sc}$: with a low short-circuit ratio, excess reactive injection becomes destructive over-voltage. The 13 May peak was \textcolor{SpOrange}{894 kV} on a 765 kV system.}
+      \end{tcolorbox}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==== 27. Sources ===========================================================
+\begin{frame}{Sources}
+  {\scriptsize
+  \begin{itemize}\setlength{\itemsep}{2pt}
+    \item WRPC, grid disturbance report, Khavda complex, 13 May 2026: connected capacity by station, SVG MVAr, the 9,000 MW ceiling, the event sequence.
+    \item CTUIL minutes (evacuation beyond 15 GW, Dec 2022; 37th CMETS-WR): transmission phases, Halvad right-of-way delays.
+    \item CMIE CapEx extract, Nov 2026: 260 rows, 157 Khavda projects; umbrella records removed. Generation, storage and transmission scoreboards.
+    \item AGEL: Khavda project page, ESIA for the 9,500 MW hybrid projects, FY25 and FY26 financial statements; KPI Green annual report FY26 (DC/AC ratio); ADB IEE for SAEL (GSECL sub-park model).
+    \item Scroll (RTI records) on the 2023 reallocation; ET Energy, DSIJ, Saur Energy, Indian Infrastructure on commissioning and storage.
+    \item Satellite imagery: Copernicus Sentinel-2 via Google Earth Engine; contains modified Copernicus Sentinel data.
+    \item The project-finance model, the diurnal profile, the exchange price curve and the blackout traces are reconstructions from the figures above, labelled as such on the slides.
+  \end{itemize}}
+\end{frame}
+
+\end{document}

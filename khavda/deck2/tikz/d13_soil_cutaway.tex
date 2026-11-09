@@ -1,0 +1,39 @@
+\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round]
+  % ground datum y=0, depth 0.5 cm per metre
+  % layers
+  \fill[Grey2] (0.8,0) rectangle (13.3,-1.9);
+  \fill[SpBlue!20] (0.8,-1.9) rectangle (13.3,-3.0);
+  \fill[white] (0.8,0) rectangle (13.3,-0.07);
+  \draw[Grey] (0.8,-0.07) -- (13.3,-0.07);
+  \draw[Grey] (0.8,-1.9) -- (13.3,-1.9);
+  \draw[Grey,thick] (0.8,0) -- (13.3,0);
+  \node[font=\tiny,text=Ink2,anchor=west,inner sep=1pt] at (0.9,0.13) {salt crust};
+  \node[font=\tiny,text=Ink2,anchor=north west,inner sep=2pt] at (3.6,-1.25) {hypersaline silt, CBR $<$ 2\%, 35 to 45\% NaCl};
+  \node[font=\tiny,text=SpBlue,anchor=south west,inner sep=2pt] at (0.85,-3.0) {saline groundwater, 3.8 to 5.7 m};
+  % depth axis
+  \draw[Grey,thick] (0.5,0) -- (0.5,-3.0);
+  \foreach \d in {0,1,2,3,4,5,6} {\draw[Grey,thick] (0.43,-0.5*\d) -- (0.5,-0.5*\d); \node[font=\tiny,text=Muted,anchor=east,inner sep=1pt] at (0.41,-0.5*\d) {\d};}
+  \node[font=\tiny,text=Muted,anchor=south,inner sep=1pt] at (0.5,0.05) {m};
+  % monsoon brine level
+  \draw[SpBlue,dashed,thin] (0.8,0.3) -- (13.3,0.3);
+  \node[font=\tiny,text=SpBlue,anchor=south west,inner sep=1pt,align=left,text width=2.2cm] at (3.5,0.33) {monsoon brine level; site is 3 to 4 m above sea level};
+  % tracker micro-piles with modules
+  \foreach \x in {1.9,2.8} {\fill[SpNearBlack] (\x-0.035,0.45) rectangle (\x+0.035,-2.5); \fill[SpNearBlack,rotate around={18:(\x,0.5)}] (\x-0.45,0.47) rectangle (\x+0.45,0.53);}
+  \node[font=\tiny,text=Ink2,anchor=south,align=center,text width=3.4cm,inner sep=1pt] at (2.35,0.78) {pre-augered micro-piles 4 to 6 m, ZAM / C5-M coating, sulphate-resisting slag cement};
+  % buried cable in sand bed at ~1 m
+  \fill[white,draw=Grey] (4.3,-0.32) rectangle (4.9,-0.68);
+  \fill[SpNearBlack] (4.6,-0.5) circle[radius=0.06];
+  \node[font=\tiny,text=Ink2,anchor=north,align=center,text width=1.6cm,inner sep=1pt] at (4.6,-0.72) {33 kV cable in sand bedding};
+  % road cross-section raised 150 mm (exaggerated)
+  \fill[Grey,draw=Muted,thin] (5.6,0) -- (5.8,0.15) -- (7.2,0.15) -- (7.4,0) -- cycle;
+  \node[font=\tiny,text=Ink2,anchor=north,inner sep=2pt] at (6.5,-0.12) {roads +150 mm above FGL};
+  % inverter on plinth
+  \fill[Grey] (8.2,0) rectangle (9.3,0.3);
+  \draw[SpNearBlack,fill=white,thin] (8.35,0.3) rectangle (9.15,0.75);
+  \node[font=\tiny,text=Ink2,anchor=south,align=center,text width=2cm,inner sep=1pt] at (8.75,0.8) {inverter plinth above flood level};
+  % pile-raft foundation under turbine tower stub
+  \foreach \x in {10.5,11.0,11.5,12.0,12.5} {\fill[Grey] (\x-0.06,-0.45) rectangle (\x+0.06,-2.85);}
+  \fill[Grey,draw=Muted,thin] (10.2,0) rectangle (12.8,-0.45);
+  \fill[Grey] (11.2,0) -- (11.8,0) -- (11.72,1.0) -- (11.28,1.0) -- cycle;
+  \node[font=\tiny,text=Ink2,anchor=west,align=left,text width=1.6cm,inner sep=1pt] at (11.95,0.65) {pile-raft foundation, 5.2 MW turbine, seismic zone V};
+\end{tikzpicture}

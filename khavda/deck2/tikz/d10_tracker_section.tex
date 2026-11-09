@@ -1,0 +1,19 @@
+\begin{tikzpicture}[x=1cm,y=1cm,every node/.append style={execute at begin node={\hyphenpenalty=10000\relax}}]
+\fill[white] (0,0) rectangle (13.2,0.35);
+\draw[Grey] (0,0.35) -- (13.2,0.35);
+\draw[Grey2] (0,0) -- (13.2,0);
+\node[font=\tiny,color=Muted] at (6.6,0.17) {white salt crust, 35 to 45\% NaCl, albedo 40 to 55\%};
+\foreach \x in {2.8,8.0} {\draw[Ink2,line width=1.2pt] (\x,0.35) -- (\x,1.4); \fill[Grey] (\x-0.08,0.35) rectangle (\x+0.08,0.5);}
+\foreach \x in {2.8,8.0} {\fill[SpNearBlack,rotate around={25:(\x,1.4)}] (\x-0.85,1.36) rectangle (\x+0.85,1.44); \fill[SpBlue!40!white,rotate around={25:(\x,1.4)}] (\x-0.85,1.44) rectangle (\x+0.85,1.48);}
+\fill[SpOrange] (0.7,3.4) circle (0.22);
+\foreach \a in {0,45,...,315} {\draw[SpOrange,thin] ([shift={(0.7,3.4)}] \a:0.3) -- ([shift={(0.7,3.4)}] \a:0.42);}
+\draw[accentarr] (1.3,2.85) -- (2.45,1.3);
+\draw[accentarr] (2.1,3.05) -- (3.25,1.6);
+\draw[SpOrange,thick,dash pattern=on 3pt off 2pt] (5.2,2.75) -- (6.8,0.35);
+\draw[accentarr,dash pattern=on 3pt off 2pt] (6.8,0.35) -- (7.72,1.24);
+\draw[accentarr,dash pattern=on 3pt off 2pt] (6.8,0.35) -- (3.55,1.52);
+\node[font=\tiny,color=SpOrange,anchor=west,text width=1.7cm,align=left] at (8.55,0.95) {rear-side gain, bifacial glass};
+\draw[Grey,thick,{Stealth[length=1.5mm]}-{Stealth[length=1.5mm]}] ([shift={(8.0,1.4)}] 150:0.8) arc[start angle=150,end angle=30,radius=0.8];
+\node[font=\tiny,color=Ink2,anchor=south,text width=3.2cm,align=center] at (8.0,2.3) {east-west rotation, horizontal single-axis tracker};
+\node[font=\tiny,color=Ink2,anchor=north west,text width=2.85cm,align=left] at (10.3,3.5) {N-type TOPCon: $-0.29$\%/$^\circ$C vs $-0.35$\%/$^\circ$C PERC\\[3pt] 1.356x DC/AC overload: 1,131 MWdc per 834 MWac\\[3pt] net: 33\% CUF vs 21 to 25\% fixed-tilt};
+\end{tikzpicture}
